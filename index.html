@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClownFish AI — All-in-One Writing Assistant</title>
+  <meta name="description" content="The only Chrome extension with an AI writer, humanizer, detector, auto typer, citations, and fact checker all built in." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #f97316;
+      --orange-light: #fb923c;
+      --orange-dim: rgba(249,115,22,0.12);
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.07);
+      --text: #f5f5f5;
+      --muted: #888;
+      --radius: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 64px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-logo span { color: var(--orange); }
+
+    .nav-cta {
+      background: var(--orange);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 9px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: var(--orange-light); }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 110px 5% 90px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--orange-dim);
+      border: 1px solid rgba(249,115,22,0.3);
+      color: var(--orange);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+
+    .badge::before { content: '✦'; }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+
+    h1 span { color: var(--orange); }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--orange);
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--orange-light); transform: translateY(-1px); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--surface2);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
+
+    /* ── STATS BAR ── */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      padding: 40px 5%;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat { text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: var(--orange); }
+    .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── SECTION ── */
+    section { padding: 90px 5%; }
+
+    .section-tag {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      max-width: 560px;
+      margin-bottom: 14px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 56px;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(249,115,22,0.35);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--orange-dim);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+    }
+
+    .feature-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0;
+      counter-reset: steps;
+    }
+
+    .step {
+      padding: 36px 32px;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .step:last-child { border-right: none; }
+
+    .step-num {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--orange-dim);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .step-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+
+    .how-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      text-align: center;
+      padding: 100px 5%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .cta-section p { color: var(--muted); margin-bottom: 36px; font-size: 1.05rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-logo { font-weight: 700; color: var(--text); }
+    .footer-logo span { color: var(--orange); }
+
+    /* ── CHROME ICON SVG ── */
+    .chrome-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .stats { gap: 28px; }
+      .step { border-right: none; border-bottom: 1px solid var(--border); }
+      .step:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">🐠 Clown<span>Fish</span> AI</a>
+  <a href="https://chrome.google.com/webstore" class="nav-cta" target="_blank">Add to Chrome — Free</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Chrome Extension</div>
+  <h1>Six writing tools.<br /><span>One extension.</span></h1>
+  <p class="hero-sub">The only Chrome extension with an AI writer, humanizer, detector, auto typer, citations, and fact checker all built in. No tab switching. No subscriptions.</p>
+  <div class="hero-btns">
+    <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank">
+      <svg class="chrome-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="4" fill="#000"/>
+        <path d="M12 8h8.66a10 10 0 1 0-4.33 13.65L12 16" stroke="#000" stroke-width="2"/>
+      </svg>
+      Add to Chrome — It's Free
+    </a>
+    <a href="#features" class="btn-secondary">See all features ↓</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">6</div>
+    <div class="stat-label">Tools in one extension</div>
+  </div>
+<div class="stat">
+    <div class="stat-num">0</div>
+    <div class="stat-label">Tab switching required</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">∞</div>
+    <div class="stat-label">Sites it works on</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-tag">Everything included</div>
+  <h2 class="section-title">Every tool you need for writing, in one place</h2>
+  <p class="section-sub">Stop paying for six different websites. ClownFish has all of it built in and works everywhere you write.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">✍️</div>
+      <div class="feature-title">AI Writer</div>
+      <p class="feature-desc">Generate full essays, paragraphs, and responses from a prompt. Adjust tone (academic, casual, creative) and length to match any assignment.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <div class="feature-title">AI Humanizer</div>
+      <p class="feature-desc">Paste AI-written text and get back something that reads like you wrote it. Adjustable from a light polish all the way to a full sentence-level rewrite.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">AI Detector</div>
+      <p class="feature-desc">Check how AI your writing looks before you submit. Powered by the same signals used by GPTZero and ZeroGPT, with a detailed breakdown of what was flagged.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⌨️</div>
+      <div class="feature-title">Auto Typer</div>
+      <p class="feature-desc">Automatically types your text into any field on any page at a natural, human-like pace. Adjustable speed, randomness, and typo rate.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <div class="feature-title">Citations</div>
+      <p class="feature-desc">Paste your text and instantly get properly formatted sources for every claim. Supports APA, MLA, and Chicago with one-click copy.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">✅</div>
+      <div class="feature-title">Fact Checker</div>
+      <p class="feature-desc">Scans your writing for false or uncertain claims and highlights them directly on the page before you hit submit.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">How it works</div>
+  <h2 class="section-title">Up and running in 60 seconds</h2>
+  <p class="section-sub">No setup. No accounts required to start. Just install and click the icon.</p>
+
+  <div class="how-wrapper">
+    <div class="how-grid">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Install the extension</div>
+        <p class="step-desc">Add ClownFish to Chrome from the Web Store. It takes about 10 seconds.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Add your API key</div>
+        <p class="step-desc">Paste a free Groq API key or an OpenAI key in settings. Groq is free to start.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Pick a tool</div>
+        <p class="step-desc">Click the ClownFish icon, choose any of the six tools from the wheel, and go.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Works everywhere</div>
+        <p class="step-desc">Google Docs, Canvas, Blackboard, any site. No copy-pasting between tabs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Stop switching tabs.<br />Get everything in one place.</h2>
+  <p>Install ClownFish and have every writing tool you need right in your browser.</p>
+  <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank" style="font-size:1.05rem;padding:16px 36px;">
+    Add to Chrome — It's Free
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🐠 Clown<span>Fish</span> AI</div>
+  <div>© 2025 ClownFish AI. All rights reserved.</div>
+  <div style="display:flex;gap:20px;">
+    <a href="mailto:support@clownfishai.com" style="color:var(--muted);text-decoration:none;">Support</a>
+    <a href="privacy.html" style="color:var(--muted);text-decoration:none;">Privacy Policy</a>
+  </div>
+</footer>
+
+</body>
+</html>
