@@ -1,0 +1,190 @@
+/* DocPlus Floating HUD */
+#docplus-hud {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+#docplus-hud.hidden {
+  display: none !important;
+}
+
+.docplus-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(13, 13, 26, 0.95);
+  border: 1px solid #3d3d5e;
+  border-radius: 50px;
+  padding: 10px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  backdrop-filter: blur(12px);
+  min-width: 220px;
+  cursor: move;
+}
+
+.docplus-badge {
+  font-size: 11px;
+  font-weight: 900;
+  color: white;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 50px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.docplus-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.docplus-status-text {
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.docplus-progress-bar {
+  height: 3px;
+  background: #2d2d4e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.docplus-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.docplus-stop-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 50px;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.docplus-stop-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* Pulse animation for typing indicator */
+@keyframes docplus-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.docplus-typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6366f1;
+  margin-right: 6px;
+  animation: docplus-pulse 1s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+/* Targeting: message box only — no blocking overlay div */
+#docplus-overlay-msg {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(13, 13, 26, 0.97);
+  border: 1px solid #6366f1;
+  border-radius: 16px;
+  padding: 28px 36px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#docplus-overlay-msg .dp-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin-bottom: 8px;
+}
+
+#docplus-overlay-msg .dp-sub {
+  font-size: 13px;
+  color: #64748b;
+}
+
+#docplus-overlay-msg .dp-icon {
+  font-size: 32px;
+  margin-bottom: 14px;
+  display: block;
+}
+
+/* Element hover highlight during targeting */
+.docplus-hover-highlight {
+  outline: 2px solid #6366f1 !important;
+  outline-offset: 2px !important;
+}
+
+/* Selection Mode Banner */
+#docplus-select-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 13, 26, 0.97);
+  border: 1px solid #f97316;
+  border-radius: 50px;
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(249, 115, 22, 0.2);
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  pointer-events: none;
+  animation: dp-fadein 0.2s ease;
+}
+
+@keyframes dp-fadein {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+#docplus-select-banner .dp-sel-icon {
+  font-size: 16px;
+}
+
+#docplus-select-banner .dp-sel-text {
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+#docplus-select-banner .dp-sel-key {
+  color: #f97316;
+  font-size: 11px;
+  background: rgba(249, 115, 22, 0.15);
+  padding: 2px 9px;
+  border-radius: 50px;
+  font-weight: 600;
+  white-space: nowrap;
+}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClownFish Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span class="logo-badge">
+          <!-- Clownfish silhouette -->
+          <svg viewBox="0 0 32 32" width="26" height="26">
+            <!-- Tail fin -->
+            <path d="M21 16 L30 8 L30 24 Z" fill="white"/>
+            <!-- Body -->
+            <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="white"/>
+            <!-- Dorsal fin -->
+            <path d="M8 8.5 Q13 2 19 8.5 Z" fill="white"/>
+            <!-- Pectoral fin -->
+            <path d="M10 21 Q6 26 10 24 Z" fill="white"/>
+            <!-- Stripe (orange on white) -->
+            <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="#f97316" opacity="0.35"/>
+            <!-- Eye -->
+            <circle cx="5.5" cy="15" r="2.5" fill="#ea580c"/>
+            <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+          </svg>
+        </span>
+        <div>
+          <h1>ClownFish</h1>
+          <p>Settings</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>AI Configuration</h2>
+      <p class="desc">Choose a provider. Groq is free — no credit card needed.</p>
+
+      <div class="field">
+        <label for="provider">AI Provider</label>
+        <select id="provider">
+          <option value="groq">Groq — Free tier (Llama / Mixtral)</option>
+          <option value="openai">OpenAI — Paid (GPT-4o / GPT-3.5)</option>
+        </select>
+        <span class="hint" id="provider-hint">
+          Get a free Groq key at <strong>console.groq.com</strong> — no credit card required.
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="api-key"><span id="key-label">Groq API Key</span></label>
+        <div class="input-row">
+          <input type="password" id="api-key" placeholder="gsk_..." autocomplete="off">
+          <button id="toggle-visibility" class="btn-icon" title="Show/Hide"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <span class="hint">Stored locally in your browser — never shared.</span>
+      </div>
+
+      <div class="field">
+        <label for="model">Model</label>
+        <select id="model">
+          <!-- populated by options.js based on provider -->
+        </select>
+      </div>
+
+      <div class="btn-row">
+        <button id="test-btn" class="btn secondary">Test API Key</button>
+        <button id="save-btn" class="btn primary">Save Settings</button>
+      </div>
+
+      <div id="status" class="status hidden"></div>
+    </section>
+
+    <section class="card setup-card" id="setup-guide">
+      <h2>Free Setup — Groq API Key</h2>
+      <p class="desc">Groq is completely free — no credit card, no cost. Takes about 60 seconds.</p>
+      <ol class="setup-steps">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <strong>Go to <a href="https://console.groq.com" target="_blank">console.groq.com</a></strong>
+            <p>Click <em>Sign Up</em> — you can use Google or GitHub to log in instantly.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <strong>Create an API Key</strong>
+            <p>In the left sidebar click <em>API Keys</em> → <em>Create API Key</em>. Name it anything.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <strong>Copy &amp; paste your key above</strong>
+            <p>Copy the key that starts with <code>gsk_</code> and paste it into the <em>Groq API Key</em> field above.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>
+            <strong>Click Save Settings &amp; Test</strong>
+            <p>Hit <em>Save Settings</em>, then <em>Test API Key</em> to confirm it works. That's it!</p>
+          </div>
+        </li>
+      </ol>
+      <p class="desc" style="margin-top:10px">Groq's free tier includes millions of tokens per day — more than enough for everyday use.</p>
+    </section>
+
+    <section class="card">
+      <h2>Auto Typer Defaults</h2>
+
+      <div class="field">
+        <label>Default Speed (WPM): <span id="default-wpm-value">60</span></label>
+        <input type="range" id="default-wpm" min="10" max="300" value="60">
+      </div>
+
+      <div class="field">
+        <label>Default Randomness: <span id="default-randomness-value">20</span>%</label>
+        <input type="range" id="default-randomness" min="0" max="100" value="20">
+      </div>
+
+      <button id="save-typer-btn" class="btn primary">Save Defaults</button>
+      <div id="typer-status" class="status hidden"></div>
+    </section>
+
+    <section class="card">
+      <h2>About</h2>
+      <p class="desc">ClownFish Extension v2.0.0 — All-in-one document productivity tools.</p>
+      <ul class="feature-list">
+        <li><span class="feat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg></span> <strong>Auto Typer</strong> — Simulates human typing with speed/randomness controls</li>
+        <li><span class="feat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></span> <strong>AI Checker</strong> — Detects AI-generated content via GPT analysis</li>
+        <li><span class="feat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></span> <strong>AI Rewriter</strong> — Humanizes text to reduce AI detection scores</li>
+        <li><span class="feat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> <strong>AI Writer</strong> — Generates AI-written content from any prompt or selected text</li>
+        <li><span class="feat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span> <strong>Cite</strong> — Finds sources for your text and formats MLA/APA/Chicago citations</li>
+        <li><span class="feat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span> <strong>Fact Check</strong> — Identifies false or uncertain claims and highlights them in the page</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

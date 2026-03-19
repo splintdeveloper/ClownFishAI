@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClownFish</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- ─── Header ──────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">
+      <span class="logo-badge">
+        <svg viewBox="0 0 32 32" width="22" height="22">
+          <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+          <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+          <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+          <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+          <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+          <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+          <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+        </svg>
+      </span>
+      <span class="logo-text">ClownFish AI</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="faq-btn" title="Help & FAQ">?</button>
+      <button class="icon-btn hidden" id="logout-btn" title="Sign out">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="darkmode-btn" title="Toggle dark mode"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="icon-btn" id="settings-btn" title="Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </header>
+
+  <!-- ─── Auth Bar ────────────────────────────────────────────────────────── -->
+  <div class="auth-bar" id="auth-bar">
+    <div class="auth-state" id="auth-signed-out">
+      <span class="auth-hint">Sign in to save your settings</span>
+      <button class="auth-signin-btn" id="sign-in-btn">Sign in</button>
+    </div>
+    <div class="auth-state hidden" id="auth-pro">
+      <span class="user-chip">
+        <span class="user-avatar" id="user-avatar-pro"></span>
+        <span class="user-email" id="user-email-pro"></span>
+      </span>
+      <div class="auth-right-row">
+        <button class="auth-link-btn" id="sign-out-btn">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Banners ──────────────────────────────────────────────────────────── -->
+  <div class="api-warning-banner hidden" id="api-warning">
+    <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> No API key set — AI features won't work.</span>
+    <button class="api-warning-btn" id="api-link">Set up in Settings →</button>
+  </div>
+  <div class="warning-banner hidden" id="context-banner" style="color:#ea580c;background:rgba(249,115,22,0.07);border-color:rgba(249,115,22,0.2);">
+    Text from page loaded into <strong id="context-tab-name"></strong>
+  </div>
+
+  <!-- ─── Wheel View ───────────────────────────────────────────────────────── -->
+  <div id="wheel-view">
+    <div id="wheel-canvas">
+      <div class="wheel-ring"></div>
+      <div class="wheel-center" id="wheel-center" title="Click to spin">
+        <svg viewBox="0 0 32 32" width="30" height="30">
+          <path d="M21 16 L30 8 L30 24 Z" fill="white"/>
+          <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="white"/>
+          <path d="M8 8.5 Q13 2 19 8.5 Z" fill="white"/>
+          <path d="M10 21 Q6 26 10 24 Z" fill="white"/>
+          <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="#f97316" opacity="0.45"/>
+          <circle cx="5.5" cy="15" r="2.5" fill="#ea580c"/>
+          <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+        </svg>
+      </div>
+
+      <div id="wheel-spinner">
+
+        <!-- Auto Typer: keyboard -->
+        <button class="wheel-item" data-tab="autoTyper" data-idx="0">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="2"/>
+              <circle cx="6"  cy="10" r="1" fill="white" stroke="none"/>
+              <circle cx="10" cy="10" r="1" fill="white" stroke="none"/>
+              <circle cx="14" cy="10" r="1" fill="white" stroke="none"/>
+              <circle cx="18" cy="10" r="1" fill="white" stroke="none"/>
+              <rect x="7.5" y="13" width="9" height="2" rx="1" fill="white" stroke="none"/>
+            </svg>
+            <span class="wi-label">Auto Typer</span>
+          </span>
+        </button>
+
+        <!-- AI Writer: pencil -->
+        <button class="wheel-item" data-tab="aiSearch" data-idx="1">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <span class="wi-label">AI Writer</span>
+          </span>
+        </button>
+
+        <!-- AI Checker: magnifying glass with crosshair -->
+        <button class="wheel-item" data-tab="aiChecker" data-idx="2">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <line x1="11" y1="8"  x2="11" y2="14"/>
+              <line x1="8"  y1="11" x2="14" y2="11"/>
+            </svg>
+            <span class="wi-label">AI Checker</span>
+          </span>
+        </button>
+
+        <!-- Rewriter: circular refresh arrows -->
+        <button class="wheel-item" data-tab="aiRewriter" data-idx="3">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/>
+              <polyline points="23 20 23 14 17 14"/>
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            <span class="wi-label">Rewriter</span>
+          </span>
+        </button>
+
+        <!-- Fact Check: shield with checkmark -->
+        <button class="wheel-item" data-tab="factCheck" data-idx="4">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <span class="wi-label">Fact Check</span>
+          </span>
+        </button>
+
+        <!-- Citations: open book -->
+        <button class="wheel-item" data-tab="aiCite" data-idx="5">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+            </svg>
+            <span class="wi-label">Citations</span>
+          </span>
+        </button>
+
+      </div><!-- end #wheel-spinner -->
+    </div><!-- end #wheel-canvas -->
+
+  </div>
+
+  <!-- ─── Panel View ───────────────────────────────────────────────────────── -->
+  <div id="panel-view" class="hidden">
+
+    <div class="panel-nav-bar">
+      <button class="panel-back-btn" id="back-btn">← Wheel</button>
+      <span class="panel-nav-title" id="panel-title"></span>
+      <div class="panel-nav-spacer"></div>
+    </div>
+
+    <!-- Quick tool switcher row -->
+    <div class="tool-quick-nav" id="tool-quick-nav">
+      <button class="tqn-btn" data-tab="autoTyper" title="Auto Typer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <circle cx="6" cy="10" r="1" fill="white" stroke="none"/>
+          <circle cx="10" cy="10" r="1" fill="white" stroke="none"/>
+          <circle cx="14" cy="10" r="1" fill="white" stroke="none"/>
+          <circle cx="18" cy="10" r="1" fill="white" stroke="none"/>
+          <rect x="7.5" y="13" width="9" height="2" rx="1" fill="white" stroke="none"/>
+        </svg>
+      </button>
+      <button class="tqn-btn" data-tab="aiSearch" title="AI Writer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </button>
+      <button class="tqn-btn" data-tab="aiChecker" title="AI Checker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="11" y1="8" x2="11" y2="14"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
+      </button>
+      <button class="tqn-btn" data-tab="aiRewriter" title="Rewriter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <polyline points="1 4 1 10 7 10"/>
+          <polyline points="23 20 23 14 17 14"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+      </button>
+      <button class="tqn-btn" data-tab="factCheck" title="Fact Check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+      </button>
+      <button class="tqn-btn" data-tab="aiCite" title="Citations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- AUTO TYPER -->
+    <div class="panel" id="panel-autoTyper">
+      <div class="row space">
+        <span class="text-muted" style="font-size:11px">Paste text to auto-type</span>
+        <button class="btn ghost sm" id="typer-clear-btn">Clear</button>
+      </div>
+      <textarea id="typer-text" placeholder="Paste or type the text to be auto-typed here..." rows="5"></textarea>
+      <div class="setting-row">
+        <label>Speed <span id="wpm-display">60</span> WPM</label>
+        <input type="range" id="wpm-slider" min="10" max="300" value="60" step="1">
+      </div>
+      <div class="setting-row">
+        <label>Randomness <span id="randomness-display">20</span>%</label>
+        <input type="range" id="randomness-slider" min="0" max="100" value="20" step="1">
+      </div>
+      <div class="setting-row">
+        <label>Typo Rate <span id="typo-display">0</span>%</label>
+        <input type="range" id="typo-slider" min="0" max="25" value="0" step="1">
+      </div>
+      <div class="row space" style="align-items:center">
+        <div class="status-pill ready" id="typer-status-pill">
+          <span class="dot"></span>
+          <span id="typer-status-label">Ready</span>
+        </div>
+        <div class="row gap-2">
+          <button class="btn danger hidden" id="typer-stop-btn">■ Stop</button>
+          <button class="btn primary" id="typer-start-btn">▶ Start</button>
+        </div>
+      </div>
+      <div class="progress-track hidden" id="typer-progress-track">
+        <div class="progress-fill" id="typer-progress-fill"></div>
+      </div>
+      <p class="hint" id="typer-hint">After clicking Start, click the target field on the page</p>
+      <p class="hint" style="margin-top:4px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Typing runs in the background — works even if you switch tabs</p>
+    </div>
+
+    <!-- AI CHECKER -->
+    <div class="panel" id="panel-aiChecker">
+      <div class="row space">
+        <span class="text-muted" style="font-size:11px">Paste text to analyze</span>
+        <div class="row gap-2">
+          <button class="btn ghost sm" id="checker-fromdoc-btn">From Doc</button>
+          <button class="btn ghost sm" id="checker-clear-btn">Clear</button>
+        </div>
+      </div>
+      <textarea id="checker-text" placeholder="Paste text here to check for AI-generated content..." rows="5"></textarea>
+      <button class="btn primary full" id="checker-analyze-btn">Analyze Text</button>
+      <div class="result-card hidden" id="checker-result">
+        <div class="output-header" style="margin-bottom:10px">
+          <span>Detection Result</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="checker-copy-btn">Copy</button>
+            <button class="btn ghost sm" id="checker-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+          </div>
+        </div>
+        <div class="ai-score-display">
+          <div class="ai-score-circle" id="checker-circle">
+            <span id="checker-pct">—</span>
+          </div>
+          <div class="ai-score-info">
+            <div class="ai-score-label" id="checker-verdict">—</div>
+            <div class="ai-score-sub" id="checker-confidence">Confidence: —</div>
+          </div>
+        </div>
+        <div class="score-bar-wrap">
+          <div class="score-bar-label"><span>Human</span><span>AI</span></div>
+          <div class="score-bar">
+            <div class="score-bar-fill" id="checker-bar"></div>
+          </div>
+        </div>
+        <div class="indicators-list" id="checker-indicators"></div>
+      </div>
+    </div>
+
+    <!-- AI REWRITER -->
+    <div class="panel" id="panel-aiRewriter">
+      <div class="row space">
+        <span class="text-muted" style="font-size:11px">Input text to humanize</span>
+        <div class="row gap-2">
+          <button class="btn ghost sm" id="rewriter-fromdoc-btn">From Doc</button>
+          <button class="btn ghost sm" id="rewriter-clear-btn">Clear</button>
+        </div>
+      </div>
+      <textarea id="rewriter-input" placeholder="Paste AI-generated text to humanize..." rows="4"></textarea>
+      <div class="setting-row">
+        <label>Humanization Level <span id="intensity-display">5</span>/10</label>
+        <input type="range" id="intensity-slider" min="1" max="10" value="5" step="1">
+      </div>
+      <div class="setting-row">
+        <label>Personalized Writing Style <span id="style-display">0</span>/10</label>
+        <input type="range" id="style-slider" min="0" max="10" value="0" step="1">
+      </div>
+      <p class="hint" id="style-token-warning" style="color:#f59e0b;text-align:left"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Uses significantly more tokens when references are loaded.</p>
+      <button class="btn primary full" id="rewriter-btn">Humanize Text</button>
+
+      <!-- Text References -->
+      <div class="text-refs-section">
+        <div class="text-refs-header">
+          <span class="text-refs-title">Text References</span>
+          <label class="btn ghost sm text-refs-upload-lbl" title="Upload a PDF or TXT file of your own writing">
+            + Add File
+            <input type="file" id="text-refs-upload" accept=".pdf,.txt" multiple style="display:none">
+          </label>
+        </div>
+        <p class="hint text-refs-hint">Upload samples of your own writing (PDF or TXT) — the AI will match your vocabulary, rhythm, and tone at the style level above.</p>
+        <div id="text-refs-list"></div>
+      </div>
+
+      <div class="hidden" id="rewriter-output-wrap">
+        <div class="output-header">
+          <span>Humanized Result</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="rewriter-copy-btn">Copy</button>
+            <button class="btn ghost sm" id="rewriter-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+          </div>
+        </div>
+        <textarea id="rewriter-output" rows="5" readonly style="margin-top:6px"></textarea>
+      </div>
+    </div>
+
+    <!-- AI WRITER -->
+    <div class="panel" id="panel-aiSearch">
+      <div class="row space">
+        <span class="text-muted" style="font-size:11px">Paste assignment or describe what to write</span>
+        <div class="row gap-2">
+          <button class="btn ghost sm" id="writer-fromdoc-btn">From Doc</button>
+          <button class="btn ghost sm" id="writer-clear-btn">Clear</button>
+        </div>
+      </div>
+      <textarea id="writer-input" placeholder="Paste your assignment instructions, essay prompt, or describe exactly what you need written..." rows="5"></textarea>
+      <div class="row gap-2" id="writer-controls-row" style="align-items:center">
+        <select id="writer-length" class="cite-style-select" style="flex:1">
+          <option value="short">Short (1–2 paragraphs)</option>
+          <option value="medium" selected>Medium (3–5 paragraphs)</option>
+          <option value="long">Long (6+ paragraphs)</option>
+        </select>
+        <select id="writer-tone" class="cite-style-select" style="flex:1">
+          <option value="academic">Academic</option>
+          <option value="casual">Casual</option>
+          <option value="creative">Creative</option>
+        </select>
+      </div>
+      <div class="row gap-2" id="writer-buttons-row">
+        <button class="btn primary" id="writer-btn" style="flex:1">Write</button>
+        <button class="btn ghost" id="writer-advanced-btn" style="flex:1">Advanced Write</button>
+      </div>
+
+      <!-- STEP 1 — Direction Selection -->
+      <div class="hidden" id="writer-directions-wrap">
+        <div class="adv-step-header">
+          <span class="adv-step-label">Step 1 of 3 — Choose a direction</span>
+          <button class="btn ghost sm" id="writer-dir-back-btn">← Back</button>
+        </div>
+        <div id="writer-directions-list"></div>
+      </div>
+
+      <!-- STEP 2 — Outline Review -->
+      <div class="hidden" id="writer-outline-wrap">
+        <div class="adv-step-header">
+          <span class="adv-step-label">Step 2 of 3 — Review your outline</span>
+          <button class="btn ghost sm" id="writer-outline-back-btn">← Back</button>
+        </div>
+        <p class="text-muted" style="font-size:11px;margin-bottom:6px">Edit the outline below if needed, then generate.</p>
+        <textarea id="writer-outline-text" rows="9" style="font-size:12px;resize:vertical"></textarea>
+        <button class="btn primary full" id="writer-generate-btn">Generate Essay</button>
+      </div>
+
+      <div class="hidden" id="writer-output-wrap">
+        <div class="output-header">
+          <span>Generated</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="writer-copy-btn">Copy</button>
+            <button class="btn ghost sm" id="writer-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+          </div>
+        </div>
+        <textarea id="writer-output" rows="7" readonly style="margin-top:6px"></textarea>
+      </div>
+    </div>
+
+    <!-- AI CITE -->
+    <div class="panel" id="panel-aiCite">
+      <div class="row space">
+        <span class="text-muted" style="font-size:11px">Find sources &amp; format citations</span>
+        <div class="row gap-2">
+          <button class="btn ghost sm" id="cite-fromdoc-btn">From Doc</button>
+          <button class="btn ghost sm" id="cite-clear-btn">Clear</button>
+        </div>
+      </div>
+      <textarea id="cite-text" placeholder="Paste text to find citation sources for..." rows="4"></textarea>
+      <div class="row gap-2">
+        <select id="cite-style" class="cite-style-select">
+          <option value="MLA">MLA</option>
+          <option value="APA">APA</option>
+          <option value="Chicago">Chicago</option>
+        </select>
+        <button class="btn primary" id="cite-btn" style="flex-shrink:0">Find Sources</button>
+      </div>
+      <div id="cite-results" class="hidden"></div>
+    </div>
+
+    <!-- FACT CHECK -->
+    <div class="panel" id="panel-factCheck">
+      <div class="row space">
+        <span class="text-muted" style="font-size:11px">Check document for false claims</span>
+        <div class="row gap-2">
+          <button class="btn ghost sm" id="facts-fromdoc-btn">From Doc</button>
+          <button class="btn ghost sm" id="facts-clear-btn">Clear</button>
+        </div>
+      </div>
+      <textarea id="facts-text" placeholder="Paste text to fact-check..." rows="4"></textarea>
+      <div class="row gap-2">
+        <button class="btn primary full" id="facts-btn">Check Facts</button>
+        <button class="btn ghost sm" id="facts-highlight-btn" style="flex-shrink:0;white-space:nowrap" title="Highlight false/uncertain text in page">Highlight</button>
+      </div>
+      <div id="facts-results" class="hidden"></div>
+    </div>
+
+  </div><!-- end #panel-view -->
+
+  <!-- ─── Footer ───────────────────────────────────────────────────────────── -->
+  <footer>
+    <span class="footer-brand">CLOWNFISH v2.0</span>
+    <div class="footer-links">
+      <a class="footer-link" href="https://splintdeveloper.github.io/ClownFishAI/privacy.html" target="_blank" rel="noopener">Privacy</a>
+      <span class="footer-sep">·</span>
+      <span class="footer-link" id="footer-settings">Settings <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-left:2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+    </div>
+  </footer>
+
+  <!-- ─── Auth Modal ───────────────────────────────────────────────────────── -->
+  <div class="modal-overlay hidden" id="auth-modal">
+    <div class="modal-box">
+      <button class="modal-close" id="auth-modal-close">✕</button>
+      <div class="modal-title" id="auth-modal-title">Sign In</div>
+
+      <!-- Saved accounts list (shown when accounts exist) -->
+      <div id="saved-accounts-section" class="hidden">
+        <div class="saved-accts-label">Recent accounts</div>
+        <div id="saved-accounts-list"></div>
+        <div class="modal-divider"><span>or sign in with</span></div>
+      </div>
+
+      <button class="google-signin-btn" id="google-signin-btn">
+        <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+      <div class="modal-divider"><span>or</span></div>
+      <input class="modal-input" type="email"    id="auth-email"    placeholder="Email address"  autocomplete="email">
+      <input class="modal-input" type="password" id="auth-password" placeholder="Password"       autocomplete="current-password">
+      <div class="modal-error hidden" id="auth-error"></div>
+      <button class="btn primary full" id="auth-submit-btn">Sign In</button>
+      <button class="modal-toggle" id="auth-toggle-btn">Don't have an account? Create one</button>
+    </div>
+  </div>
+
+  <!-- ─── FAQ Modal ────────────────────────────────────────────────────────── -->
+  <div class="modal-overlay hidden" id="faq-modal">
+    <div class="modal-box faq-modal-box">
+      <button class="modal-close" id="faq-close">✕</button>
+      <div class="modal-title">Help &amp; FAQ</div>
+      <div class="faq-content">
+
+        <div class="faq-section">
+          <div class="faq-section-title">Getting Started</div>
+          <div class="faq-q">Why aren't the AI features working?</div>
+          <div class="faq-a">You need a free API key. Click Settings and paste your key there. All AI tools use it to process your text.</div>
+          <div class="faq-q">How do I get a free API key?</div>
+          <div class="faq-a">
+            Go to <strong>console.groq.com</strong>, create a free account, and generate an API key. It's completely free — no credit card needed. In Settings, make sure the provider is set to <strong>Groq</strong> and paste the key.
+          </div>
+          <div class="faq-q">Can I use OpenAI instead?</div>
+          <div class="faq-a">Yes. In Settings, switch the provider to OpenAI and paste your OpenAI API key. OpenAI requires a paid account.</div>
+        </div>
+
+        <div class="faq-section">
+          <div class="faq-section-title">Important Disclaimer</div>
+          <div class="faq-a faq-disclaimer">
+            ClownFish AI is a personal productivity tool. <strong>Do not submit AI-generated content as your own work in academic, professional, or legal contexts.</strong> Doing so may violate your school's academic integrity policy or professional standards. Use responsibly.
+          </div>
+        </div>
+
+        <div class="faq-section">
+          <div class="faq-section-title">How Each Tool Works</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Typer</div>
+          <div class="faq-a">Pastes text by simulating real keystrokes — useful for fields that block paste. Set your speed (WPM) and randomness, click Start, then click the target field on any webpage. The extension types the text for you character by character.</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg> AI Checker</div>
+          <div class="faq-a">Analyzes text for signs of AI generation. Paste any text and it returns a 0–100 score, a verdict, and specific signals it detected (like low sentence burstiness or AI clichés).</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Rewriter</div>
+          <div class="faq-a">Rewrites text to sound more human. Paste AI-generated text, choose a humanization level (1 = subtle, 10 = heavy), and it rewrites it to vary sentence length, remove AI clichés, and add natural rhythm.</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> AI Writer</div>
+          <div class="faq-a">Writes content from a prompt or assignment. Paste the instructions, choose a length and tone, and it generates a human-sounding draft.</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> Citations</div>
+          <div class="faq-a">Suggests citation sources for claims in your text. Paste your text, choose MLA / APA / Chicago style, and it identifies claims and suggests authoritative sources. <strong>Always verify sources before submitting.</strong></div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> Fact Check</div>
+          <div class="faq-a">Checks each factual claim in your text against known sources. Returns a verdict (true / false / uncertain / opinion) for each claim. Use Highlight to mark questionable claims directly on the page.</div>
+        </div>
+
+        <div class="faq-section">
+          <div class="faq-section-title">Other Questions</div>
+          <div class="faq-q">Is my text sent anywhere?</div>
+          <div class="faq-a">Text is sent directly to the AI provider (Groq or OpenAI) using your own API key. ClownFish AI does not store or see your text.</div>
+          <div class="faq-q">Why does Auto Typer close the popup?</div>
+          <div class="faq-a">It needs to close so you can click on the target field in the webpage. The typing happens in the background — just click where you want the text typed.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

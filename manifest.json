@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "ClownFish Extension",
+  "version": "2.0.0",
+  "description": "All-in-one document tools: Auto Typer, AI Checker, AI Rewriter, AI Search, Citations, and Fact Check",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "contextMenus",
+    "identity",
+    "clipboardRead"
+  ],
+  "oauth2": {
+    "client_id": "412993352953-h95bg7orui8sp45tkmsnu595906mub0m.apps.googleusercontent.com",
+    "scopes": [
+      "openid",
+      "email",
+      "profile",
+      "https://www.googleapis.com/auth/documents.readonly"
+    ]
+  },
+  "options_page": "options.html",
+  "host_permissions": [
+    "<all_urls>",
+    "https://accounts.google.com/*",
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "https://us-central1-*.cloudfunctions.net/*",
+    "https://docs.googleapis.com/*"
+  ]
+}
