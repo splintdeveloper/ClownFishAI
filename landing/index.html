@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClownFish AI — All-in-One Writing Assistant</title>
-  <meta name="description" content="The only Chrome extension with an AI writer, humanizer, detector, auto typer, citations, and fact checker all built in." />
+  <meta name="description" content="The only Chrome extension with a problem solver, AI writer, humanizer, detector, auto typer, citations, summarizer, and fact checker all built in." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -238,9 +238,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
       margin-bottom: 18px;
+      flex-shrink: 0;
     }
+
+    .feature-icon svg { width: 22px; height: 22px; }
 
     .feature-title {
       font-size: 1rem;
@@ -252,6 +254,20 @@
       font-size: 0.9rem;
       color: var(--muted);
       line-height: 1.65;
+    }
+
+    .feature-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: var(--orange-dim);
+      color: var(--orange);
+      border: 1px solid rgba(249,115,22,0.25);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+      letter-spacing: 0.04em;
     }
 
     /* ── HOW IT WORKS ── */
@@ -335,7 +351,13 @@
       font-size: 0.85rem;
     }
 
-    .footer-logo { font-weight: 700; color: var(--text); }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: var(--text);
+    }
     .footer-logo span { color: var(--orange); }
 
     /* ── CHROME ICON SVG ── */
@@ -357,15 +379,26 @@
 
 <!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">🐠 Clown<span>Fish</span> AI</a>
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 32 32" width="24" height="24">
+      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+    </svg>
+    Clown<span>Fish</span> AI
+  </a>
   <a href="https://chrome.google.com/webstore" class="nav-cta" target="_blank">Add to Chrome — Free</a>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
   <div class="badge">Chrome Extension</div>
-  <h1>Six writing tools.<br /><span>One extension.</span></h1>
-  <p class="hero-sub">The only Chrome extension with an AI writer, humanizer, detector, auto typer, citations, and fact checker all built in. No tab switching. No subscriptions.</p>
+  <h1>Every writing tool.<br /><span>One extension.</span></h1>
+  <p class="hero-sub">AI writer, problem solver, humanizer, detector, auto typer, citations, summarizer, and fact checker — all built in. No tab switching. No subscriptions.</p>
   <div class="hero-btns">
     <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank">
       <svg class="chrome-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -384,7 +417,7 @@
     <div class="stat-num">6</div>
     <div class="stat-label">Tools in one extension</div>
   </div>
-<div class="stat">
+  <div class="stat">
     <div class="stat-num">0</div>
     <div class="stat-label">Tab switching required</div>
   </div>
@@ -401,36 +434,82 @@
   <p class="section-sub">Stop paying for six different websites. ClownFish has all of it built in and works everywhere you write.</p>
 
   <div class="features-grid">
+
     <div class="feature-card">
-      <div class="feature-icon">✍️</div>
-      <div class="feature-title">AI Writer</div>
-      <p class="feature-desc">Generate full essays, paragraphs, and responses from a prompt. Adjust tone (academic, casual, creative) and length to match any assignment.</p>
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      <div class="feature-title">Problem Solver</div>
+      <p class="feature-desc">Two modes in one tool. <strong>AI Writer</strong> generates full essays, paragraphs, and responses from a prompt — adjust tone and length to match any assignment. <strong>Problem Solver</strong> goes through your doc question by question, generating answers you can auto-type one at a time.</p>
     </div>
+
     <div class="feature-card">
-      <div class="feature-icon">🔄</div>
-      <div class="feature-title">AI Humanizer</div>
-      <p class="feature-desc">Paste AI-written text and get back something that reads like you wrote it. Adjustable from a light polish all the way to a full sentence-level rewrite.</p>
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="11" y1="8" x2="11" y2="14"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
+      </div>
+      <div class="feature-title">AI Checker</div>
+      <p class="feature-desc">Two modes in one tool. <strong>AI Check</strong> scores your text 0–100 for AI likelihood using the same signals as GPTZero, with a full breakdown of what was flagged. <strong>Fact Check</strong> scans every claim in your writing and returns a true / false / uncertain verdict for each one.</p>
     </div>
+
     <div class="feature-card">
-      <div class="feature-icon">🔍</div>
-      <div class="feature-title">AI Detector</div>
-      <p class="feature-desc">Check how AI your writing looks before you submit. Powered by the same signals used by GPTZero and ZeroGPT, with a detailed breakdown of what was flagged.</p>
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <polyline points="23 20 23 14 17 14"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+      </div>
+      <div class="feature-title">Rewriter</div>
+      <p class="feature-desc">Paste AI-generated text and get back something that reads like you wrote it. Adjustable from a light polish all the way to a full sentence-level rewrite. Upload samples of your own writing to match your personal style.</p>
     </div>
+
     <div class="feature-card">
-      <div class="feature-icon">⌨️</div>
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <circle cx="6" cy="10" r="1" fill="#f97316" stroke="none"/>
+          <circle cx="10" cy="10" r="1" fill="#f97316" stroke="none"/>
+          <circle cx="14" cy="10" r="1" fill="#f97316" stroke="none"/>
+          <circle cx="18" cy="10" r="1" fill="#f97316" stroke="none"/>
+          <rect x="7.5" y="13" width="9" height="2" rx="1" fill="#f97316" stroke="none"/>
+        </svg>
+      </div>
       <div class="feature-title">Auto Typer</div>
-      <p class="feature-desc">Automatically types your text into any field on any page at a natural, human-like pace. Adjustable speed, randomness, and typo rate.</p>
+      <p class="feature-desc">Automatically types your text into any field on any page at a natural, human-like pace. Adjustable speed, randomness, and typo rate. Types in the background — works even if you switch tabs.</p>
     </div>
+
     <div class="feature-card">
-      <div class="feature-icon">📚</div>
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+        </svg>
+      </div>
       <div class="feature-title">Citations</div>
       <p class="feature-desc">Paste your text and instantly get properly formatted sources for every claim. Supports APA, MLA, and Chicago with one-click copy.</p>
     </div>
+
     <div class="feature-card">
-      <div class="feature-icon">✅</div>
-      <div class="feature-title">Fact Checker</div>
-      <p class="feature-desc">Scans your writing for false or uncertain claims and highlights them directly on the page before you hit submit.</p>
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="3" y1="14" x2="21" y2="14"/>
+          <line x1="3" y1="18" x2="14" y2="18"/>
+        </svg>
+      </div>
+      <div class="feature-title">Summarize</div>
+      <p class="feature-desc">Condense any assignment, article, or document into a brief, standard, or detailed summary — without reading the whole thing. Load from a page with one click or paste any text.</p>
     </div>
+
   </div>
 </section>
 
@@ -455,7 +534,7 @@
       <div class="step">
         <div class="step-num">03</div>
         <div class="step-title">Pick a tool</div>
-        <p class="step-desc">Click the ClownFish icon, choose any of the six tools from the wheel, and go.</p>
+        <p class="step-desc">Click the ClownFish icon, choose any of the tools from the wheel, and go.</p>
       </div>
       <div class="step">
         <div class="step-num">04</div>
@@ -478,8 +557,19 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">🐠 Clown<span>Fish</span> AI</div>
-  <div>© 2025 ClownFish AI. All rights reserved.</div>
+  <div class="footer-logo">
+    <svg viewBox="0 0 32 32" width="20" height="20">
+      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+    </svg>
+    Clown<span>Fish</span> AI
+  </div>
+  <div>© 2026 ClownFish AI. All rights reserved.</div>
   <div style="display:flex;gap:20px;">
     <a href="mailto:splintapp@gmail.com" style="color:var(--muted);text-decoration:none;">Support</a>
     <a href="privacy.html" style="color:var(--muted);text-decoration:none;">Privacy Policy</a>

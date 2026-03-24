@@ -136,7 +136,12 @@ async function loadFromDoc(btn, textareaId) {
       btn.textContent = 'No text found';
       btn.style.color = '#ef4444';
       btn.title = 'Could not read the document. If it\'s a school Google Doc, try: select all text (Ctrl+A), copy (Ctrl+C), then paste into the text area manually.';
-      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.title = ''; btn.disabled = false; }, 4000);
+      const reloadHint = document.createElement('p');
+      reloadHint.textContent = 'Try reloading the tab';
+      reloadHint.style.cssText = 'color:#ef4444;font-size:11px;margin:4px 0 0;text-align:right;';
+      const row = btn.closest('.row.space') || btn.parentElement;
+      row.parentElement.insertBefore(reloadHint, row.nextSibling);
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.title = ''; btn.disabled = false; reloadHint.remove(); }, 4000);
       return;
     }
     $(textareaId).value = text;
@@ -153,12 +158,12 @@ async function loadFromDoc(btn, textareaId) {
 
 // ─── Wheel Navigation ─────────────────────────────────────────────────────────
 const PANEL_NAMES = {
-  autoTyper:  'Auto Typer',
-  aiChecker:  'AI Checker',
-  aiRewriter: 'Rewriter',
-  aiSearch:   'AI Writer',
-  aiCite:     'Citations',
-  factCheck:  'Fact Check',
+  autoTyper:    'Auto Typer',
+  aiChecker:    'AI Checker',
+  aiRewriter:   'Rewriter',
+  aiSearch:     'Problem Solver',
+  aiCite:       'Citations',
+  aiSummarize:  'Summarize',
 };
 
 function openPanel(tabId) {
@@ -179,6 +184,31 @@ function returnToWheel() {
   $('panel-view').classList.add('hidden');
   $('wheel-view').classList.remove('hidden');
 }
+
+// ─── Tool Mode Switcher (AI Checker ↔ Fact Check | AI Writer ↔ Problem Solver) ─
+function switchCheckerMode(mode) {
+  document.querySelectorAll('#panel-aiChecker .tool-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  $('checker-aicheck-section').classList.toggle('hidden', mode !== 'aicheck');
+  $('checker-factcheck-section').classList.toggle('hidden', mode !== 'factcheck');
+}
+
+function switchSolverMode(mode) {
+  document.querySelectorAll('#panel-aiSearch .tool-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  $('solver-writer-section').classList.toggle('hidden', mode !== 'writer');
+  $('solver-problems-section').classList.toggle('hidden', mode !== 'problems');
+}
+
+document.querySelectorAll('#panel-aiChecker .tool-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchCheckerMode(btn.dataset.mode));
+});
+
+document.querySelectorAll('#panel-aiSearch .tool-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchSolverMode(btn.dataset.mode));
+});
 
 document.querySelectorAll('.wheel-item').forEach((item) => {
   item.addEventListener('click', () => openPanel(item.dataset.tab));
@@ -297,7 +327,7 @@ async function _renderSavedAccounts() {
         currentUser = await signInWithSavedAccount(acct);
         updateAuthUI(currentUser);
         $('auth-modal').classList.add('hidden');
-        returnToWheel();
+        await checkAndShowPaywall(currentUser);
       } catch (e) {
         errEl.textContent = e.message || 'Could not sign in — please use Google sign-in.';
         errEl.classList.remove('hidden');
@@ -332,7 +362,7 @@ async function _submitAuth() {
       : await signInWithEmail(email, password);
     updateAuthUI(currentUser);
     $('auth-modal').classList.add('hidden');
-    returnToWheel();
+    await checkAndShowPaywall(currentUser);
   } catch (e) {
     errEl.textContent = e.message;
     errEl.classList.remove('hidden');
@@ -356,7 +386,7 @@ async function _doSignOut() {
   await signOut();
   currentUser = null;
   updateAuthUI(null);
-  returnToWheel();
+  _showPaywallView(false); // signed out → show paywall with sign-in prompt
 }
 
 $('sign-out-btn').addEventListener('click', _doSignOut);
@@ -376,7 +406,7 @@ $('google-signin-btn').addEventListener('click', async () => {
     currentUser = user;
     updateAuthUI(currentUser);
     $('auth-modal').classList.add('hidden');
-    returnToWheel();
+    await checkAndShowPaywall(currentUser);
   } catch (e) {
     errEl.textContent = e.message;
     errEl.classList.remove('hidden');
@@ -387,6 +417,113 @@ $('google-signin-btn').addEventListener('click', async () => {
 });
 
 
+// ─── Paywall ──────────────────────────────────────────────────────────────────
+async function checkAndShowPaywall(user) {
+  if (!user) { _showPaywallView(false); return; }
+
+  // Instant local cache check — avoids a Firestore round-trip on every open
+  const { cf_subscribed } = await chrome.storage.local.get('cf_subscribed');
+  if (cf_subscribed) { _hidePaywall(); return; }
+
+  // Verify against Firestore (network call)
+  try {
+    const idToken = await getValidIdToken();
+    if (idToken) {
+      const subscribed = await checkSubscription(user.uid, idToken);
+      if (subscribed) {
+        await chrome.storage.local.set({ cf_subscribed: true });
+        _hidePaywall();
+        return;
+      }
+    }
+  } catch (_) {}
+
+  _showPaywallView(true);
+}
+
+function _showPaywallView(isSignedIn) {
+  $('wheel-view').classList.add('hidden');
+  $('panel-view').classList.add('hidden');
+  $('paywall-view').classList.remove('hidden');
+  $('paywall-actions').classList.toggle('hidden', !isSignedIn);
+  $('paywall-signin-prompt').classList.toggle('hidden', isSignedIn);
+  $('paywall-error').classList.add('hidden');
+}
+
+function _hidePaywall() {
+  $('paywall-view').classList.add('hidden');
+  $('wheel-view').classList.remove('hidden');
+}
+
+// "Unlock for $0.99" — open Stripe Checkout in a new tab
+$('paywall-buy-btn').addEventListener('click', async () => {
+  const btn = $('paywall-buy-btn');
+  setLoading(btn, true, 'Opening checkout…');
+  $('paywall-error').classList.add('hidden');
+  try {
+    const idToken = await getValidIdToken();
+    if (!idToken) throw new Error('Please sign in first.');
+    const url = await createCheckoutSession(idToken);
+    chrome.tabs.create({ url });
+  } catch (e) {
+    $('paywall-error').textContent = e.message;
+    $('paywall-error').classList.remove('hidden');
+    setLoading(btn, false);
+  }
+});
+
+// "I've already paid" — re-check Firestore
+$('paywall-paid-btn').addEventListener('click', async () => {
+  const btn = $('paywall-paid-btn');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  $('paywall-error').classList.add('hidden');
+  try {
+    const user = await getCurrentUser();
+    const idToken = await getValidIdToken();
+    if (idToken && user) {
+      const subscribed = await checkSubscription(user.uid, idToken);
+      if (subscribed) {
+        await chrome.storage.local.set({ cf_subscribed: true });
+        _hidePaywall();
+        return;
+      }
+    }
+    $('paywall-error').textContent = 'No payment found yet — complete checkout first.';
+    $('paywall-error').classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "I've already paid →";
+  }
+});
+
+// Promo code
+$('paywall-promo-btn').addEventListener('click', async () => {
+  const code = $('paywall-promo-input').value.trim();
+  if (!code) return;
+  const btn = $('paywall-promo-btn');
+  setLoading(btn, true, '…');
+  $('paywall-error').classList.add('hidden');
+  try {
+    const idToken = await getValidIdToken();
+    if (!idToken) throw new Error('Please sign in first.');
+    await redeemPromoCode(idToken, code);
+    await chrome.storage.local.set({ cf_subscribed: true });
+    _hidePaywall();
+  } catch (e) {
+    $('paywall-error').textContent = e.message;
+    $('paywall-error').classList.remove('hidden');
+    setLoading(btn, false);
+  }
+});
+
+$('paywall-promo-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('paywall-promo-btn').click();
+});
+
+// "Sign in" from paywall — reuse existing auth modal
+$('paywall-signin-btn').addEventListener('click', () => showAuthModal(false));
+
 // ─── On Popup Load ────────────────────────────────────────────────────────────
 (async function init() {
   // ── Auth check ────────────────────────────────────────────────────────────
@@ -394,6 +531,7 @@ $('google-signin-btn').addEventListener('click', async () => {
   // Token is refreshed lazily the first time a feature needs it.
   currentUser = await getCurrentUser();
   updateAuthUI(currentUser);
+  await checkAndShowPaywall(currentUser);
 
   // ── Text references ───────────────────────────────────────────────────────
   _initRefs();
@@ -422,7 +560,7 @@ $('google-signin-btn').addEventListener('click', async () => {
     'typerRunning', 'typerProgress', 'typerComplete',
     'contextPending', 'selectionPending',
     'saved_typer', 'saved_checker', 'saved_rewriter',
-    'saved_writer', 'saved_cite', 'saved_facts',
+    'saved_writer', 'saved_cite', 'saved_facts', 'saved_summarize',
   ]);
 
   if (!data.apiKey) {
@@ -430,12 +568,13 @@ $('google-signin-btn').addEventListener('click', async () => {
   }
 
   // Restore persisted textarea content
-  if (data.saved_typer)   $('typer-text').value     = data.saved_typer;
-  if (data.saved_checker) $('checker-text').value   = data.saved_checker;
-  if (data.saved_rewriter) $('rewriter-input').value = data.saved_rewriter;
-  if (data.saved_writer)  $('writer-input').value   = data.saved_writer;
-  if (data.saved_cite)    $('cite-text').value       = data.saved_cite;
-  if (data.saved_facts)   $('facts-text').value      = data.saved_facts;
+  if (data.saved_typer)      $('typer-text').value       = data.saved_typer;
+  if (data.saved_checker)   $('checker-text').value     = data.saved_checker;
+  if (data.saved_rewriter)  $('rewriter-input').value   = data.saved_rewriter;
+  if (data.saved_writer)    $('writer-input').value     = data.saved_writer;
+  if (data.saved_cite)      $('cite-text').value        = data.saved_cite;
+  if (data.saved_facts)     $('facts-text').value       = data.saved_facts;
+  if (data.saved_summarize) $('summarize-input').value  = data.saved_summarize;
 
   // Restore typer defaults
   if (data.defaultWpm) {
@@ -466,17 +605,21 @@ $('google-signin-btn').addEventListener('click', async () => {
     const { tab, text } = data.contextPending;
     await chrome.storage.local.remove('contextPending');
 
+    // factCheck now lives inside aiChecker — redirect the panel
+    const resolvedTab = tab === 'factCheck' ? 'aiChecker' : tab;
+
     // Switch to the requested panel
-    openPanel(tab);
+    openPanel(resolvedTab);
 
     // Pre-fill the text
     const inputMap = { aiChecker: 'checker-text', aiRewriter: 'rewriter-input', aiSearch: 'writer-input', aiCite: 'cite-text', factCheck: 'facts-text' };
     const inputId = inputMap[tab];
     if (inputId) $(inputId).value = text;
+    if (tab === 'factCheck') switchCheckerMode('factcheck');
 
     $('context-banner').classList.remove('hidden');
-    const names = { aiChecker: 'AI Check', aiRewriter: 'Rewrite', aiSearch: 'AI Writer', aiCite: 'Cite', factCheck: 'Fact Check' };
-    $('context-tab-name').textContent = names[tab] || tab;
+    const names = { aiChecker: 'AI Check', aiRewriter: 'Rewrite', aiSearch: 'Problem Solver', aiCite: 'Cite', factCheck: 'Fact Check' };
+    $('context-tab-name').textContent = names[tab] || resolvedTab;
     setTimeout(() => $('context-banner').classList.add('hidden'), 4000);
   }
 
@@ -485,13 +628,17 @@ $('google-signin-btn').addEventListener('click', async () => {
     const { feature, text } = data.selectionPending;
     await chrome.storage.local.remove('selectionPending');
 
+    // factCheck now lives inside aiChecker — redirect the panel
+    const resolvedFeature = feature === 'factCheck' ? 'aiChecker' : feature;
+
     // Switch to the right panel
-    openPanel(feature);
+    openPanel(resolvedFeature);
 
     // Fill the input
     const inputMap = { aiChecker: 'checker-text', aiRewriter: 'rewriter-input', aiSearch: 'writer-input', aiCite: 'cite-text', factCheck: 'facts-text' };
     const inputId = inputMap[feature];
     if (inputId) $(inputId).value = text;
+    if (feature === 'factCheck') switchCheckerMode('factcheck');
 
     // Auto-run immediately
     const runMap = { aiChecker: 'checker-analyze-btn', aiRewriter: 'rewriter-btn', aiSearch: 'writer-btn', aiCite: 'cite-btn', factCheck: 'facts-btn' };
@@ -613,12 +760,13 @@ setInterval(async () => {
 // ─── Text Persistence ─────────────────────────────────────────────────────────
 // Auto-save each textarea to storage on every keystroke
 [
-  ['typer-text',     'saved_typer'],
-  ['checker-text',   'saved_checker'],
-  ['rewriter-input', 'saved_rewriter'],
-  ['writer-input',   'saved_writer'],
-  ['cite-text',      'saved_cite'],
-  ['facts-text',     'saved_facts'],
+  ['typer-text',      'saved_typer'],
+  ['checker-text',    'saved_checker'],
+  ['rewriter-input',  'saved_rewriter'],
+  ['writer-input',    'saved_writer'],
+  ['cite-text',       'saved_cite'],
+  ['facts-text',      'saved_facts'],
+  ['summarize-input', 'saved_summarize'],
 ].forEach(([elId, key]) => {
   const el = $(elId);
   if (el) el.addEventListener('input', () => chrome.storage.local.set({ [key]: el.value }));
@@ -655,6 +803,49 @@ $('facts-clear-btn').addEventListener('click', () => {
   lastFactResults = null;
   chrome.storage.local.remove('saved_facts');
 });
+$('summarize-clear-btn').addEventListener('click', () => {
+  $('summarize-input').value = '';
+  $('summarize-output-wrap').classList.add('hidden');
+  chrome.storage.local.remove('saved_summarize');
+});
+
+// Clear All — wipes every tool's inputs and results at once
+$('clear-all-btn').addEventListener('click', () => {
+  // Auto Typer
+  $('typer-text').value = '';
+  // AI Checker
+  $('checker-text').value = '';
+  $('checker-result').classList.add('hidden');
+  // Rewriter
+  $('rewriter-input').value = '';
+  $('rewriter-output-wrap').classList.add('hidden');
+  // AI Writer
+  $('writer-input').value = '';
+  $('writer-output-wrap').classList.add('hidden');
+  $('writer-directions-wrap').classList.add('hidden');
+  $('writer-outline-wrap').classList.add('hidden');
+  // Citations
+  $('cite-text').value = '';
+  $('cite-results').classList.add('hidden');
+  // Fact Check
+  $('facts-text').value = '';
+  $('facts-results').classList.add('hidden');
+  lastFactResults = null;
+  // Summarize
+  $('summarize-input').value = '';
+  $('summarize-output-wrap').classList.add('hidden');
+  // Problem Solver (Multi-Problem session)
+  $('mc-session').classList.add('hidden');
+  $('mc-empty-state').classList.remove('hidden');
+  $('mc-answer-wrap').classList.add('hidden');
+  $('mc-answer-textarea').value = '';
+  $('mc-answers-loading').classList.add('hidden');
+  $('mc-answers-error').classList.add('hidden');
+  $('mc-load-btn').textContent = 'Load Questions from Doc';
+  sendToContent('clearMCHighlight');
+  // Remove all saved storage
+  chrome.storage.local.remove(['saved_typer','saved_checker','saved_rewriter','saved_writer','saved_cite','saved_facts','saved_summarize','mc_questions','mc_current_idx','mc_answers_cache','mc_doc_context','mc_plan']);
+});
 
 // From Doc buttons — pull text from the active tab into each tool's textarea
 $('checker-fromdoc-btn').addEventListener('click',  (e) => loadFromDoc(e.currentTarget, 'checker-text'));
@@ -662,6 +853,7 @@ $('rewriter-fromdoc-btn').addEventListener('click', (e) => loadFromDoc(e.current
 $('writer-fromdoc-btn').addEventListener('click',   (e) => loadFromDoc(e.currentTarget, 'writer-input'));
 $('cite-fromdoc-btn').addEventListener('click',     (e) => loadFromDoc(e.currentTarget, 'cite-text'));
 $('facts-fromdoc-btn').addEventListener('click',    (e) => loadFromDoc(e.currentTarget, 'facts-text'));
+$('summarize-fromdoc-btn').addEventListener('click',(e) => loadFromDoc(e.currentTarget, 'summarize-input'));
 
 // ─── AI CHECKER ───────────────────────────────────────────────────────────────
 let lastCheckerResult = null;
@@ -1535,6 +1727,60 @@ function renderFactResults({ claims, summary }) {
   });
 }
 
+// ─── SUMMARIZE ────────────────────────────────────────────────────────────────
+
+$('summarize-btn').addEventListener('click', async () => {
+  const text = $('summarize-input').value.trim();
+  if (!text) { flashError($('summarize-input'), 'Enter text to summarize.'); return; }
+
+  const lengthMode = $('summarize-length').value;
+  const btn = $('summarize-btn');
+  setLoading(btn, true, 'Summarizing…');
+  $('summarize-output-wrap').classList.add('hidden');
+
+  const lengthGuide = {
+    short:    'Write a brief summary in 2–3 sentences. Capture only the core idea.',
+    medium:   'Write a clear 1-paragraph summary covering the main points and purpose.',
+    detailed: 'List the key points as a bullet list. Each bullet should be a distinct, important takeaway. Use concise plain language.',
+  }[lengthMode];
+
+  try {
+    const result = await callOpenAI({
+      system: `You are a summarization assistant. Summarize the provided text clearly and concisely.
+
+${lengthGuide}
+
+Rules:
+- Stay accurate to what the text actually says — do not add information
+- Use plain, clear language
+- Do not include preamble like "This text discusses..." or "Here is a summary:"
+- Return only the summary itself`,
+      user: text,
+      temperature: 0.3,
+    });
+
+    $('summarize-output').value = result.trim();
+    $('summarize-output-wrap').classList.remove('hidden');
+  } catch (e) {
+    if (e.message === 'NO_API_KEY') {
+      $('api-warning').classList.remove('hidden');
+      alert('Set your API key in Settings first.');
+    } else {
+      alert(`Summarize failed: ${e.message}`);
+    }
+  } finally {
+    setLoading(btn, false);
+  }
+});
+
+$('summarize-copy-btn').addEventListener('click', () => {
+  copyWithFeedback($('summarize-copy-btn'), $('summarize-output').value);
+});
+
+$('summarize-autotype-btn').addEventListener('click', () => {
+  sendToAutoTyper($('summarize-output').value);
+});
+
 // ─── Utility: HTML escape ─────────────────────────────────────────────────────
 function escHtml(s) {
   return String(s ?? '')
@@ -1555,3 +1801,375 @@ function flashError(el, msg) {
     el.title = '';
   }, 2000);
 }
+
+// ─── MULTIPLE CHOICE ─────────────────────────────────────────────────────────
+//
+// Flow:
+//   1. User clicks "Load Questions from Doc"
+//   2. Pulls document text via getPageText (same pipeline as all From Doc buttons)
+//   3. AI call extracts all questions → saved to chrome.storage.local
+//   4. One question shown at a time; AI generates 3 answer options on demand
+//   5. User clicks an answer → auto-typed, state advances to next question
+//   6. State persists across popup opens (popup closes during auto-type)
+//
+// Storage keys: mc_questions, mc_current_idx, mc_answers_cache, mc_doc_context, mc_plan
+
+const LABELS = ['A', 'B', 'C'];
+
+// Load current MC state and render the panel on startup
+(async function initMultiChoice() {
+  const data = await chrome.storage.local.get(['mc_questions', 'mc_current_idx']);
+  if (data.mc_questions && data.mc_questions.length > 0) {
+    const idx = data.mc_current_idx ?? 0;
+    if (idx < data.mc_questions.length) {
+      // Resume existing session
+      $('mc-empty-state').classList.add('hidden');
+      $('mc-session').classList.remove('hidden');
+      renderMCQuestion(data.mc_questions, idx);
+    } else {
+      // Session complete — show completion message in empty state
+      showMCComplete();
+    }
+  }
+})();
+
+$('mc-load-btn').addEventListener('click', async () => {
+  const btn = $('mc-load-btn');
+  setLoading(btn, true, 'Reading document…');
+
+  try {
+    const res = await sendToContent('getPageText');
+    const docText = res?.text?.trim() || '';
+
+    if (!docText) {
+      setLoading(btn, false);
+      flashError(btn, 'No text found in document. Make sure you\'re on a Google Doc or similar page.');
+      btn.textContent = 'No text found';
+      btn.style.color = '#ef4444';
+      const mcReloadHint = document.createElement('p');
+      mcReloadHint.textContent = 'Try reloading the tab';
+      mcReloadHint.style.cssText = 'color:#ef4444;font-size:11px;margin:4px 0 0;text-align:center;';
+      btn.parentElement.insertBefore(mcReloadHint, btn.nextSibling);
+      setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; mcReloadHint.remove(); }, 3000);
+      return;
+    }
+
+    // Step 1: Holistic analysis — understand the whole assignment before answering any part
+    setLoading(btn, true, 'Analyzing assignment…');
+
+    const planRaw = await callOpenAI({
+      system: `You are a student assistant. Read this entire assignment and form a complete holistic plan BEFORE filling in any individual field.
+
+Identify:
+1. The main question or prompt being asked
+2. A clear overall thesis or answer to the main prompt (1-2 sentences)
+3. Exactly how many sources are required and what real, credible sources to use (with actual URLs)
+4. Specific evidence points that support the thesis, numbered and spread across the sources
+
+Return ONLY valid JSON:
+{
+  "overall_thesis": "complete answer to the main prompt in 1-2 sentences",
+  "sources": [
+    { "number": 1, "url": "real URL", "name": "source name", "value": "1 specific value of this source", "limitation": "1 specific limitation of this source" }
+  ],
+  "evidence": [
+    { "source_number": 1, "fact": "specific evidence from the source", "significance": "how this directly answers the main prompt" }
+  ]
+}`,
+      user: docText.slice(0, 6000),
+      json: true,
+      temperature: 0.4,
+    });
+
+    const plan = extractJSON(planRaw) || {};
+
+    // Step 2: Fill every item using the plan as the single source of truth
+    setLoading(btn, true, 'Filling in answers…');
+
+    const raw = await callOpenAI({
+      system: `You are a student assistant. Using the provided plan, fill in ALL fields for this assignment. The plan has already decided the thesis, sources, and evidence — use it consistently for every field.
+
+Rules:
+- ALL fields for "Source #1" must use source number 1 from the plan (same URL, same name, same value/limitation)
+- ALL fields for "Source #2" must use source number 2 from the plan (same URL, same name, same value/limitation)
+- Evidence fields should draw from the plan's evidence list in order
+- For URL/link fields: use the exact URL from the plan
+- Write naturally, like a knowledgeable student
+- Fill-in-the-blank / single field: 1 sentence; short answer: 2-3 sentences; analysis: 3-5 sentences
+
+IDENTIFY fill-in items:
+- Questions with "?" expecting a written answer
+- Blank/labeled fields (e.g. "Name: ___", "Response:")
+- Table cells with placeholder text ("Paste link here", "Write here", "Your answer here")
+- Structured prompts ("1 Value:", "1 Limitation:", "Significance:", "How does this help your question?", etc.)
+- Any field or cell clearly meant to be filled in by the student
+
+For table-based assignments: label each item as "[Section] — [Prompt]" (e.g. "Source #1 — Paste link here", "Source #1 OPVL — 1 Value").
+
+SKIP: headings, pure instructions, word banks, already-filled content.
+
+Return ONLY valid JSON:
+{ "items": [ { "question": "field label or prompt", "answer": "your answer" }, ... ] }
+Order items top to bottom, left to right. If nothing to fill in, return { "items": [] }.`,
+      user: `Plan (use this as the single source of truth for all answers):
+${JSON.stringify(plan, null, 2)}
+
+Assignment document (identify all fields to fill in, then answer using the plan):
+${docText.slice(0, 6000)}`,
+      json: true,
+      temperature: 0.3,
+    });
+
+    const parsed = extractJSON(raw);
+    const items = parsed?.items;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      setLoading(btn, false);
+      btn.textContent = 'No questions found';
+      btn.style.color = '#f59e0b';
+      setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
+      return;
+    }
+
+    const questions    = items.map(item => item.question || '');
+    const answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
+
+    // Save session state with all answers pre-loaded
+    await chrome.storage.local.set({
+      mc_questions:    questions,
+      mc_current_idx:  0,
+      mc_answers_cache: answersCache,
+      mc_doc_context:  docText.slice(0, 4000),
+      mc_plan:         plan,
+    });
+
+    setLoading(btn, false);
+    $('mc-empty-state').classList.add('hidden');
+    $('mc-session').classList.remove('hidden');
+    renderMCQuestion(questions, 0);
+
+  } catch (err) {
+    setLoading(btn, false);
+    btn.textContent = err.message === 'NO_API_KEY' ? 'No API key — check Settings' : 'Error loading';
+    btn.style.color = '#ef4444';
+    setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
+  }
+});
+
+function renderMCQuestion(questions, idx) {
+  const total = questions.length;
+  const q = questions[idx];
+
+  // Update counter + progress bar
+  $('mc-q-counter').textContent = `Question ${idx + 1} of ${total}`;
+  const pct = Math.round((idx / total) * 100);
+  $('mc-progress-fill').style.width = `${pct}%`;
+
+  // Update question text
+  $('mc-question-text').textContent = q;
+
+  // Update prev/skip buttons
+  $('mc-prev-btn').disabled = idx === 0;
+
+  // Clear previous answer and show loading
+  $('mc-answer-wrap').classList.add('hidden');
+  $('mc-answer-textarea').value = '';
+  $('mc-answers-loading').classList.remove('hidden');
+  $('mc-answers-error').classList.add('hidden');
+
+  // Highlight the question on the page so the user can see it (no auto-focus)
+  sendToContent('highlightMCQuestion', { text: q });
+
+  // Generate answer (from cache or AI)
+  generateAnswerForQuestion(questions, idx);
+
+  // Pre-fetch next answer silently in the background
+  if (idx + 1 < questions.length) {
+    generateAnswerForQuestion(questions, idx + 1, { render: false }).catch(() => {});
+  }
+}
+
+async function generateAnswerForQuestion(questions, idx, { render = true, previousAnswer = null } = {}) {
+  try {
+    const data = await chrome.storage.local.get(['mc_answers_cache', 'mc_doc_context', 'mc_plan']);
+    const cache = data.mc_answers_cache || {};
+    const context = data.mc_doc_context || '';
+    const plan = data.mc_plan || null;
+
+    let answer;
+    if (cache[idx] && !previousAnswer) {
+      answer = cache[idx];
+    } else {
+      const avoidNote = previousAnswer
+        ? `\n- A previous attempt gave this answer: "${previousAnswer}" — you MUST use a completely different approach, angle, structure, and wording. Do not reuse any phrases or sentence structures from that answer.`
+        : '';
+      const raw = await callOpenAI({
+        system: `You are a helpful student assistant. Generate a single, well-written answer for the given assignment question or fill-in field.
+
+Guidelines:
+- Calibrate length to the question: fill-in-the-blank → 1 sentence; short answer → 2–3 sentences; analysis → 3–5 sentences
+- Sound like a knowledgeable student wrote it — natural, not robotic
+- If the field is part of a table (e.g. "Source #1 — Significance" or "OPVL — 1 Value"), use all the surrounding questions and document context to understand what source/topic is being analyzed and tailor the answer accordingly. All fields in the same table section relate to the same source or topic.
+- If the field expects a URL or link, provide a real, relevant URL
+- Only output the answer text itself — no labels, prefixes, or explanations${avoidNote}
+
+Return ONLY valid JSON: { "answer": "answer text here" }`,
+        user: `Field to fill in: ${questions[idx]}
+
+${plan ? `Overall assignment plan (use this for consistency):\n${JSON.stringify(plan, null, 2)}\n\n` : ''}All fields in this assignment (for context):
+${questions.slice(0, 12).map((q, i) => `${i + 1}. ${q}`).join('\n')}
+
+Document context:
+${context.slice(0, 2000)}`,
+        json: true,
+        temperature: previousAnswer ? 0.95 : 0.7,
+      });
+
+      const parsed = extractJSON(raw);
+      answer = parsed?.answer;
+      if (!answer || typeof answer !== 'string') throw new Error('Bad answer response');
+
+      cache[idx] = answer;
+      await chrome.storage.local.set({ mc_answers_cache: cache });
+    }
+
+    if (render) {
+      $('mc-answers-loading').classList.add('hidden');
+      $('mc-answer-textarea').value = answer;
+      $('mc-answer-wrap').classList.remove('hidden');
+    }
+
+  } catch (err) {
+    if (render) {
+      $('mc-answers-loading').classList.add('hidden');
+      $('mc-answers-error').classList.remove('hidden');
+      const retryBtn = $('mc-retry-btn');
+      retryBtn.onclick = () => {
+        $('mc-answers-error').classList.add('hidden');
+        $('mc-answers-loading').classList.remove('hidden');
+        generateAnswerForQuestion(questions, idx);
+      };
+    }
+  }
+}
+
+// Auto-Type & Next button
+$('mc-autotype-btn').addEventListener('click', async () => {
+  const text = $('mc-answer-textarea').value.trim();
+  if (!text) return;
+
+  const data = await chrome.storage.local.get(['mc_questions', 'mc_current_idx']);
+  const idx = data.mc_current_idx ?? 0;
+  const questions = data.mc_questions || [];
+  const nextIdx = idx + 1;
+  await chrome.storage.local.set({ mc_current_idx: nextIdx });
+
+  showMCTypingState();
+
+  const settings = await chrome.storage.local.get(['wpm', 'randomness', 'typoRate']);
+  sendToContent('startMCTyping', {
+    text,
+    questionText: questions[idx],
+    wpm: settings.wpm || 60,
+    randomness: settings.randomness || 20,
+    typoRate: settings.typoRate || 0,
+  });
+});
+
+// Generate New Answer button
+$('mc-regen-btn').addEventListener('click', async () => {
+  const data = await chrome.storage.local.get(['mc_questions', 'mc_current_idx', 'mc_answers_cache']);
+  const idx = data.mc_current_idx ?? 0;
+  const questions = data.mc_questions || [];
+  // Capture current answer to avoid repeating it
+  const previousAnswer = $('mc-answer-textarea').value.trim() || null;
+  // Clear cache for this question to force regeneration
+  const cache = data.mc_answers_cache || {};
+  delete cache[idx];
+  await chrome.storage.local.set({ mc_answers_cache: cache });
+
+  $('mc-answer-wrap').classList.add('hidden');
+  $('mc-answer-textarea').value = '';
+  $('mc-answers-loading').classList.remove('hidden');
+  generateAnswerForQuestion(questions, idx, { previousAnswer });
+});
+
+function showMCTypingState() {
+  $('mc-answer-wrap').classList.add('hidden');
+  $('mc-answers-loading').classList.add('hidden');
+  $('mc-answers-error').classList.add('hidden');
+  $('mc-typing-state').classList.remove('hidden');
+  $('mc-prev-btn').disabled = true;
+  $('mc-skip-btn').disabled = true;
+}
+
+function hideMCTypingState() {
+  $('mc-typing-state').classList.add('hidden');
+  $('mc-prev-btn').disabled = false;
+  $('mc-skip-btn').disabled = false;
+}
+
+// Prev / Skip navigation
+$('mc-prev-btn').addEventListener('click', async () => {
+  const data = await chrome.storage.local.get(['mc_questions', 'mc_current_idx']);
+  if (!data.mc_questions) return;
+  const newIdx = Math.max(0, (data.mc_current_idx ?? 0) - 1);
+  await chrome.storage.local.set({ mc_current_idx: newIdx });
+  renderMCQuestion(data.mc_questions, newIdx);
+});
+
+$('mc-skip-btn').addEventListener('click', async () => {
+  const data = await chrome.storage.local.get(['mc_questions', 'mc_current_idx']);
+  if (!data.mc_questions) return;
+  const newIdx = (data.mc_current_idx ?? 0) + 1;
+  if (newIdx >= data.mc_questions.length) {
+    await chrome.storage.local.set({ mc_current_idx: newIdx });
+    sendToContent('clearMCHighlight');
+    $('mc-session').classList.add('hidden');
+    $('mc-empty-state').classList.remove('hidden');
+    showMCComplete();
+    return;
+  }
+  await chrome.storage.local.set({ mc_current_idx: newIdx });
+  renderMCQuestion(data.mc_questions, newIdx);
+});
+
+// Reset session
+$('mc-reset-btn').addEventListener('click', async () => {
+  await chrome.storage.local.remove(['mc_questions', 'mc_current_idx', 'mc_answers_cache', 'mc_doc_context', 'mc_plan']);
+  sendToContent('clearMCHighlight');
+  $('mc-session').classList.add('hidden');
+  $('mc-empty-state').classList.remove('hidden');
+  // Reset load button text in case it was changed
+  const btn = $('mc-load-btn');
+  btn.textContent = 'Load Questions from Doc';
+  btn.style.color = '';
+  btn.disabled = false;
+});
+
+function showMCComplete() {
+  const btn = $('mc-load-btn');
+  btn.textContent = 'All done! Load new session';
+  btn.style.color = '#10b981';
+  // Reset colour after a moment so it doesn't look broken
+  setTimeout(() => { btn.style.color = ''; }, 3000);
+}
+
+// Listen for content.js → popup broadcast when MC typing finishes
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.action !== 'mcTypingDone') return;
+  hideMCTypingState();
+  (async () => {
+    const data = await chrome.storage.local.get(['mc_questions', 'mc_current_idx']);
+    if (!data.mc_questions) return;
+    const nextIdx = data.mc_current_idx ?? 0;
+    if (nextIdx >= data.mc_questions.length) {
+      sendToContent('clearMCHighlight');
+      $('mc-session').classList.add('hidden');
+      $('mc-empty-state').classList.remove('hidden');
+      showMCComplete();
+      return;
+    }
+    renderMCQuestion(data.mc_questions, nextIdx);
+  })();
+});

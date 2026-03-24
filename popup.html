@@ -65,7 +65,7 @@
   </div>
 
   <!-- ─── Wheel View ───────────────────────────────────────────────────────── -->
-  <div id="wheel-view">
+  <div id="wheel-view" class="hidden">
     <div id="wheel-canvas">
       <div class="wheel-ring"></div>
       <div class="wheel-center" id="wheel-center" title="Click to spin">
@@ -97,14 +97,14 @@
           </span>
         </button>
 
-        <!-- AI Writer: pencil -->
+        <!-- Problem Solver: pencil + list -->
         <button class="wheel-item" data-tab="aiSearch" data-idx="1">
           <span class="wi-inner">
             <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
-            <span class="wi-label">AI Writer</span>
+            <span class="wi-label">Problem Solver</span>
           </span>
         </button>
 
@@ -133,19 +133,8 @@
           </span>
         </button>
 
-        <!-- Fact Check: shield with checkmark -->
-        <button class="wheel-item" data-tab="factCheck" data-idx="4">
-          <span class="wi-inner">
-            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <polyline points="9 12 11 14 15 10"/>
-            </svg>
-            <span class="wi-label">Fact Check</span>
-          </span>
-        </button>
-
         <!-- Citations: open book -->
-        <button class="wheel-item" data-tab="aiCite" data-idx="5">
+        <button class="wheel-item" data-tab="aiCite" data-idx="4">
           <span class="wi-inner">
             <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
@@ -155,9 +144,70 @@
           </span>
         </button>
 
+        <!-- Summarize: condensed text lines -->
+        <button class="wheel-item" data-tab="aiSummarize" data-idx="5">
+          <span class="wi-inner">
+            <svg class="wi-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <line x1="3" y1="14" x2="21" y2="14"/>
+              <line x1="3" y1="18" x2="14" y2="18"/>
+            </svg>
+            <span class="wi-label">Summarize</span>
+          </span>
+        </button>
+
       </div><!-- end #wheel-spinner -->
     </div><!-- end #wheel-canvas -->
 
+  </div>
+
+  <!-- ─── Paywall View ─────────────────────────────────────────────────────── -->
+  <div id="paywall-view" class="hidden">
+    <div class="paywall-body">
+
+      <svg viewBox="0 0 32 32" width="40" height="40" style="display:block;margin:0 auto 10px">
+        <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+        <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+        <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+        <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+        <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+        <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+        <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+      </svg>
+
+      <div class="paywall-title">ClownFish AI</div>
+      <div class="paywall-sub">Unlock full access — one-time payment</div>
+      <div class="paywall-price-tag">$0.99</div>
+
+      <ul class="paywall-features">
+        <li>Auto Typer</li>
+        <li>Problem Solver (AI Writer + Question Solver)</li>
+        <li>AI Checker + Fact Check</li>
+        <li>Rewriter</li>
+        <li>Citations</li>
+        <li>Summarize</li>
+      </ul>
+
+      <!-- Signed-in actions -->
+      <div id="paywall-actions">
+        <button class="btn primary full" id="paywall-buy-btn">Unlock for $0.99</button>
+        <button class="btn ghost full sm" id="paywall-paid-btn" style="margin-top:6px">I've already paid →</button>
+        <div class="modal-divider" style="margin:12px 0"><span>or enter promo code</span></div>
+        <div class="row gap-2">
+          <input class="modal-input" type="text" id="paywall-promo-input" placeholder="Promo code" style="margin:0;flex:1">
+          <button class="btn ghost" id="paywall-promo-btn" style="flex-shrink:0">Apply</button>
+        </div>
+      </div>
+
+      <!-- Not signed in -->
+      <div id="paywall-signin-prompt" class="hidden">
+        <p class="hint" style="text-align:center;margin-bottom:8px">Sign in to unlock access.</p>
+        <button class="btn primary full" id="paywall-signin-btn">Sign in with Google</button>
+      </div>
+
+      <p class="paywall-error hidden" id="paywall-error"></p>
+    </div>
   </div>
 
   <!-- ─── Panel View ───────────────────────────────────────────────────────── -->
@@ -166,7 +216,7 @@
     <div class="panel-nav-bar">
       <button class="panel-back-btn" id="back-btn">← Wheel</button>
       <span class="panel-nav-title" id="panel-title"></span>
-      <div class="panel-nav-spacer"></div>
+      <button class="btn ghost sm" id="clear-all-btn" title="Clear all tool inputs">Clear All</button>
     </div>
 
     <!-- Quick tool switcher row -->
@@ -181,13 +231,13 @@
           <rect x="7.5" y="13" width="9" height="2" rx="1" fill="white" stroke="none"/>
         </svg>
       </button>
-      <button class="tqn-btn" data-tab="aiSearch" title="AI Writer">
+      <button class="tqn-btn" data-tab="aiSearch" title="Problem Solver">
         <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>
-      <button class="tqn-btn" data-tab="aiChecker" title="AI Checker">
+      <button class="tqn-btn" data-tab="aiChecker" title="AI Checker + Fact Check">
         <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -202,16 +252,18 @@
           <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
         </svg>
       </button>
-      <button class="tqn-btn" data-tab="factCheck" title="Fact Check">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          <polyline points="9 12 11 14 15 10"/>
-        </svg>
-      </button>
       <button class="tqn-btn" data-tab="aiCite" title="Citations">
         <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
           <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
           <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+        </svg>
+      </button>
+      <button class="tqn-btn" data-tab="aiSummarize" title="Summarize">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="3" y1="14" x2="21" y2="14"/>
+          <line x1="3" y1="18" x2="14" y2="18"/>
         </svg>
       </button>
     </div>
@@ -252,42 +304,70 @@
       <p class="hint" style="margin-top:4px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Typing runs in the background — works even if you switch tabs</p>
     </div>
 
-    <!-- AI CHECKER -->
+    <!-- AI CHECKER (includes Fact Check tab) -->
     <div class="panel" id="panel-aiChecker">
-      <div class="row space">
-        <span class="text-muted" style="font-size:11px">Paste text to analyze</span>
-        <div class="row gap-2">
-          <button class="btn ghost sm" id="checker-fromdoc-btn">From Doc</button>
-          <button class="btn ghost sm" id="checker-clear-btn">Clear</button>
-        </div>
+
+      <!-- Mode switcher -->
+      <div class="tool-mode-switcher">
+        <button class="tool-mode-btn active" data-mode="aicheck" data-panel="checker">AI Check</button>
+        <button class="tool-mode-btn" data-mode="factcheck" data-panel="checker">Fact Check</button>
       </div>
-      <textarea id="checker-text" placeholder="Paste text here to check for AI-generated content..." rows="5"></textarea>
-      <button class="btn primary full" id="checker-analyze-btn">Analyze Text</button>
-      <div class="result-card hidden" id="checker-result">
-        <div class="output-header" style="margin-bottom:10px">
-          <span>Detection Result</span>
+
+      <!-- AI CHECK section -->
+      <div class="tool-mode-section" id="checker-aicheck-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Paste text to analyze</span>
           <div class="row gap-2">
-            <button class="btn ghost sm" id="checker-copy-btn">Copy</button>
-            <button class="btn ghost sm" id="checker-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            <button class="btn ghost sm" id="checker-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="checker-clear-btn">Clear</button>
           </div>
         </div>
-        <div class="ai-score-display">
-          <div class="ai-score-circle" id="checker-circle">
-            <span id="checker-pct">—</span>
+        <textarea id="checker-text" placeholder="Paste text here to check for AI-generated content..." rows="5"></textarea>
+        <button class="btn primary full" id="checker-analyze-btn">Analyze Text</button>
+        <div class="result-card hidden" id="checker-result">
+          <div class="output-header" style="margin-bottom:10px">
+            <span>Detection Result</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="checker-copy-btn">Copy</button>
+              <button class="btn ghost sm" id="checker-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            </div>
           </div>
-          <div class="ai-score-info">
-            <div class="ai-score-label" id="checker-verdict">—</div>
-            <div class="ai-score-sub" id="checker-confidence">Confidence: —</div>
+          <div class="ai-score-display">
+            <div class="ai-score-circle" id="checker-circle">
+              <span id="checker-pct">—</span>
+            </div>
+            <div class="ai-score-info">
+              <div class="ai-score-label" id="checker-verdict">—</div>
+              <div class="ai-score-sub" id="checker-confidence">Confidence: —</div>
+            </div>
           </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label"><span>Human</span><span>AI</span></div>
+            <div class="score-bar">
+              <div class="score-bar-fill" id="checker-bar"></div>
+            </div>
+          </div>
+          <div class="indicators-list" id="checker-indicators"></div>
         </div>
-        <div class="score-bar-wrap">
-          <div class="score-bar-label"><span>Human</span><span>AI</span></div>
-          <div class="score-bar">
-            <div class="score-bar-fill" id="checker-bar"></div>
-          </div>
-        </div>
-        <div class="indicators-list" id="checker-indicators"></div>
       </div>
+
+      <!-- FACT CHECK section -->
+      <div class="tool-mode-section hidden" id="checker-factcheck-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Check document for false claims</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="facts-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="facts-clear-btn">Clear</button>
+          </div>
+        </div>
+        <textarea id="facts-text" placeholder="Paste text to fact-check..." rows="4"></textarea>
+        <div class="row gap-2">
+          <button class="btn primary full" id="facts-btn">Check Facts</button>
+          <button class="btn ghost sm" id="facts-highlight-btn" style="flex-shrink:0;white-space:nowrap" title="Highlight false/uncertain text in page">Highlight</button>
+        </div>
+        <div id="facts-results" class="hidden"></div>
+      </div>
+
     </div>
 
     <!-- AI REWRITER -->
@@ -311,6 +391,17 @@
       <p class="hint" id="style-token-warning" style="color:#f59e0b;text-align:left"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:3px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Uses significantly more tokens when references are loaded.</p>
       <button class="btn primary full" id="rewriter-btn">Humanize Text</button>
 
+      <div class="hidden" id="rewriter-output-wrap">
+        <div class="output-header">
+          <span>Humanized Result</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="rewriter-copy-btn">Copy</button>
+            <button class="btn ghost sm" id="rewriter-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+          </div>
+        </div>
+        <textarea id="rewriter-output" rows="5" readonly style="margin-top:6px"></textarea>
+      </div>
+
       <!-- Text References -->
       <div class="text-refs-section">
         <div class="text-refs-header">
@@ -323,76 +414,145 @@
         <p class="hint text-refs-hint">Upload samples of your own writing (PDF or TXT) — the AI will match your vocabulary, rhythm, and tone at the style level above.</p>
         <div id="text-refs-list"></div>
       </div>
-
-      <div class="hidden" id="rewriter-output-wrap">
-        <div class="output-header">
-          <span>Humanized Result</span>
-          <div class="row gap-2">
-            <button class="btn ghost sm" id="rewriter-copy-btn">Copy</button>
-            <button class="btn ghost sm" id="rewriter-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
-          </div>
-        </div>
-        <textarea id="rewriter-output" rows="5" readonly style="margin-top:6px"></textarea>
-      </div>
     </div>
 
-    <!-- AI WRITER -->
+    <!-- PROBLEM SOLVER (AI Writer + Multi-Problem Solver) -->
     <div class="panel" id="panel-aiSearch">
-      <div class="row space">
-        <span class="text-muted" style="font-size:11px">Paste assignment or describe what to write</span>
-        <div class="row gap-2">
-          <button class="btn ghost sm" id="writer-fromdoc-btn">From Doc</button>
-          <button class="btn ghost sm" id="writer-clear-btn">Clear</button>
-        </div>
-      </div>
-      <textarea id="writer-input" placeholder="Paste your assignment instructions, essay prompt, or describe exactly what you need written..." rows="5"></textarea>
-      <div class="row gap-2" id="writer-controls-row" style="align-items:center">
-        <select id="writer-length" class="cite-style-select" style="flex:1">
-          <option value="short">Short (1–2 paragraphs)</option>
-          <option value="medium" selected>Medium (3–5 paragraphs)</option>
-          <option value="long">Long (6+ paragraphs)</option>
-        </select>
-        <select id="writer-tone" class="cite-style-select" style="flex:1">
-          <option value="academic">Academic</option>
-          <option value="casual">Casual</option>
-          <option value="creative">Creative</option>
-        </select>
-      </div>
-      <div class="row gap-2" id="writer-buttons-row">
-        <button class="btn primary" id="writer-btn" style="flex:1">Write</button>
-        <button class="btn ghost" id="writer-advanced-btn" style="flex:1">Advanced Write</button>
+
+      <!-- Mode switcher -->
+      <div class="tool-mode-switcher">
+        <button class="tool-mode-btn active" data-mode="writer" data-panel="solver">AI Writer</button>
+        <button class="tool-mode-btn" data-mode="problems" data-panel="solver">Problem Solver</button>
       </div>
 
-      <!-- STEP 1 — Direction Selection -->
-      <div class="hidden" id="writer-directions-wrap">
-        <div class="adv-step-header">
-          <span class="adv-step-label">Step 1 of 3 — Choose a direction</span>
-          <button class="btn ghost sm" id="writer-dir-back-btn">← Back</button>
-        </div>
-        <div id="writer-directions-list"></div>
-      </div>
-
-      <!-- STEP 2 — Outline Review -->
-      <div class="hidden" id="writer-outline-wrap">
-        <div class="adv-step-header">
-          <span class="adv-step-label">Step 2 of 3 — Review your outline</span>
-          <button class="btn ghost sm" id="writer-outline-back-btn">← Back</button>
-        </div>
-        <p class="text-muted" style="font-size:11px;margin-bottom:6px">Edit the outline below if needed, then generate.</p>
-        <textarea id="writer-outline-text" rows="9" style="font-size:12px;resize:vertical"></textarea>
-        <button class="btn primary full" id="writer-generate-btn">Generate Essay</button>
-      </div>
-
-      <div class="hidden" id="writer-output-wrap">
-        <div class="output-header">
-          <span>Generated</span>
+      <!-- AI WRITER section -->
+      <div class="tool-mode-section" id="solver-writer-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Paste assignment or describe what to write</span>
           <div class="row gap-2">
-            <button class="btn ghost sm" id="writer-copy-btn">Copy</button>
-            <button class="btn ghost sm" id="writer-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            <button class="btn ghost sm" id="writer-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="writer-clear-btn">Clear</button>
           </div>
         </div>
-        <textarea id="writer-output" rows="7" readonly style="margin-top:6px"></textarea>
+        <textarea id="writer-input" placeholder="Paste your assignment instructions, essay prompt, or describe exactly what you need written..." rows="5"></textarea>
+        <div class="row gap-2" id="writer-controls-row" style="align-items:center">
+          <select id="writer-length" class="cite-style-select" style="flex:1">
+            <option value="short">Short (1–2 paragraphs)</option>
+            <option value="medium" selected>Medium (3–5 paragraphs)</option>
+            <option value="long">Long (6+ paragraphs)</option>
+          </select>
+          <select id="writer-tone" class="cite-style-select" style="flex:1">
+            <option value="academic">Academic</option>
+            <option value="casual">Casual</option>
+            <option value="creative">Creative</option>
+          </select>
+        </div>
+        <div class="row gap-2" id="writer-buttons-row">
+          <button class="btn primary" id="writer-btn" style="flex:1">Write</button>
+          <button class="btn ghost" id="writer-advanced-btn" style="flex:1">Advanced Write</button>
+        </div>
+
+        <!-- STEP 1 — Direction Selection -->
+        <div class="hidden" id="writer-directions-wrap">
+          <div class="adv-step-header">
+            <span class="adv-step-label">Step 1 of 3 — Choose a direction</span>
+            <button class="btn ghost sm" id="writer-dir-back-btn">← Back</button>
+          </div>
+          <div id="writer-directions-list"></div>
+        </div>
+
+        <!-- STEP 2 — Outline Review -->
+        <div class="hidden" id="writer-outline-wrap">
+          <div class="adv-step-header">
+            <span class="adv-step-label">Step 2 of 3 — Review your outline</span>
+            <button class="btn ghost sm" id="writer-outline-back-btn">← Back</button>
+          </div>
+          <p class="text-muted" style="font-size:11px;margin-bottom:6px">Edit the outline below if needed, then generate.</p>
+          <textarea id="writer-outline-text" rows="9" style="font-size:12px;resize:vertical"></textarea>
+          <button class="btn primary full" id="writer-generate-btn">Generate Essay</button>
+        </div>
+
+        <div class="hidden" id="writer-output-wrap">
+          <div class="output-header">
+            <span>Generated</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="writer-copy-btn">Copy</button>
+              <button class="btn ghost sm" id="writer-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            </div>
+          </div>
+          <textarea id="writer-output" rows="7" readonly style="margin-top:6px"></textarea>
+        </div>
       </div>
+
+      <!-- PROBLEM SOLVER section (Multi-Problem Solver) -->
+      <div class="tool-mode-section hidden" id="solver-problems-section">
+
+        <!-- Empty state: no session loaded -->
+        <div id="mc-empty-state">
+          <div class="mc-empty-icon">
+            <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;opacity:0.6">
+              <line x1="18" y1="12" x2="40" y2="12"/>
+              <line x1="18" y1="24" x2="40" y2="24"/>
+              <line x1="18" y1="36" x2="40" y2="36"/>
+              <circle cx="9" cy="12" r="4"/>
+              <circle cx="9" cy="24" r="4"/>
+              <circle cx="9" cy="36" r="4"/>
+            </svg>
+          </div>
+          <p class="hint" style="margin-bottom:10px">Load an assignment document and the AI will go through each question, giving you answer options to choose from — each one gets auto-typed.</p>
+          <button class="btn primary full" id="mc-load-btn">Load Questions from Doc</button>
+          <p class="hint" style="margin-top:6px">Works best on Google Docs with multiple questions or tables to fill out.</p>
+        </div>
+
+        <!-- Active session -->
+        <div class="hidden" id="mc-session">
+
+          <!-- Progress bar + counter + nav -->
+          <div class="mc-progress-header">
+            <div class="row space" style="align-items:center;margin-bottom:5px">
+              <button class="btn ghost sm" id="mc-prev-btn">← Prev</button>
+              <span class="mc-q-counter" id="mc-q-counter">Question 1 of 1</span>
+              <div class="row gap-2">
+                <button class="btn ghost sm" id="mc-skip-btn">Skip →</button>
+                <button class="btn ghost sm" id="mc-reset-btn">New</button>
+              </div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="mc-progress-fill" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- Question display -->
+          <div class="mc-question-box" id="mc-question-text"></div>
+
+          <!-- Generated answer (editable) -->
+          <div id="mc-answer-wrap" class="hidden">
+            <textarea id="mc-answer-textarea" rows="4" placeholder="AI-generated answer will appear here — edit freely before typing…" style="margin-bottom:6px;resize:vertical"></textarea>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="mc-regen-btn">↺ New Answer</button>
+              <button class="btn primary" id="mc-autotype-btn" style="flex:1">Auto-Type &amp; Next →</button>
+            </div>
+          </div>
+
+          <!-- Loading answer -->
+          <div class="hidden direction-loading" id="mc-answers-loading">
+            <span class="spinner"></span> Generating answer…
+          </div>
+
+          <!-- Typing in progress -->
+          <div class="hidden direction-loading" id="mc-typing-state">
+            <span class="spinner"></span> Typing your answer…
+          </div>
+
+          <!-- Answers error -->
+          <div class="hidden" id="mc-answers-error">
+            <p class="hint" style="color:var(--danger);margin-bottom:6px">Could not generate an answer. Check your API key.</p>
+            <button class="btn ghost full sm" id="mc-retry-btn">Retry</button>
+          </div>
+
+        </div>
+      </div>
+
     </div>
 
     <!-- AI CITE -->
@@ -416,21 +576,35 @@
       <div id="cite-results" class="hidden"></div>
     </div>
 
-    <!-- FACT CHECK -->
-    <div class="panel" id="panel-factCheck">
+
+    <!-- SUMMARIZE -->
+    <div class="panel" id="panel-aiSummarize">
       <div class="row space">
-        <span class="text-muted" style="font-size:11px">Check document for false claims</span>
+        <span class="text-muted" style="font-size:11px">Paste text or load from page to summarize</span>
         <div class="row gap-2">
-          <button class="btn ghost sm" id="facts-fromdoc-btn">From Doc</button>
-          <button class="btn ghost sm" id="facts-clear-btn">Clear</button>
+          <button class="btn ghost sm" id="summarize-fromdoc-btn">From Doc</button>
+          <button class="btn ghost sm" id="summarize-clear-btn">Clear</button>
         </div>
       </div>
-      <textarea id="facts-text" placeholder="Paste text to fact-check..." rows="4"></textarea>
-      <div class="row gap-2">
-        <button class="btn primary full" id="facts-btn">Check Facts</button>
-        <button class="btn ghost sm" id="facts-highlight-btn" style="flex-shrink:0;white-space:nowrap" title="Highlight false/uncertain text in page">Highlight</button>
+      <textarea id="summarize-input" placeholder="Paste text you want summarized — an assignment, article, essay, or anything you just wrote..." rows="5"></textarea>
+      <div class="row gap-2" style="align-items:center">
+        <select id="summarize-length" class="cite-style-select" style="flex:1">
+          <option value="short">Brief (2–3 sentences)</option>
+          <option value="medium" selected>Standard (1 paragraph)</option>
+          <option value="detailed">Detailed (key points list)</option>
+        </select>
+        <button class="btn primary" id="summarize-btn" style="flex:1">Summarize</button>
       </div>
-      <div id="facts-results" class="hidden"></div>
+      <div class="hidden" id="summarize-output-wrap">
+        <div class="output-header" style="margin-top:10px">
+          <span>Summary</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="summarize-copy-btn">Copy</button>
+            <button class="btn ghost sm" id="summarize-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+          </div>
+        </div>
+        <textarea id="summarize-output" rows="5" readonly style="margin-top:6px"></textarea>
+      </div>
     </div>
 
   </div><!-- end #panel-view -->
@@ -514,18 +688,24 @@
           <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Rewriter</div>
           <div class="faq-a">Rewrites text to sound more human. Paste AI-generated text, choose a humanization level (1 = subtle, 10 = heavy), and it rewrites it to vary sentence length, remove AI clichés, and add natural rhythm.</div>
 
-          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> AI Writer</div>
-          <div class="faq-a">Writes content from a prompt or assignment. Paste the instructions, choose a length and tone, and it generates a human-sounding draft.</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Problem Solver — AI Writer tab</div>
+          <div class="faq-a">Writes content from a prompt or assignment. Paste the instructions, choose a length and tone, and it generates a human-sounding draft. Use Advanced Write for a 3-step outline process.</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="2"/><circle cx="4.5" cy="18" r="2"/></svg> Problem Solver — Problem Solver tab</div>
+          <div class="faq-a">Goes through your assignment question by question, generating an AI answer for each one. Edit the answer if you like, then auto-type it and move to the next. Great for worksheets, tables, or any doc with lots of questions.</div>
 
           <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> Citations</div>
           <div class="faq-a">Suggests citation sources for claims in your text. Paste your text, choose MLA / APA / Chicago style, and it identifies claims and suggests authoritative sources. <strong>Always verify sources before submitting.</strong></div>
 
-          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg> Fact Check</div>
-          <div class="faq-a">Checks each factual claim in your text against known sources. Returns a verdict (true / false / uncertain / opinion) for each claim. Use Highlight to mark questionable claims directly on the page.</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg> AI Checker — Fact Check tab</div>
+          <div class="faq-a">Checks each factual claim in your text against known sources. Returns a verdict (true / false / uncertain / opinion) for each claim. Use Highlight to mark questionable claims directly on the page. Found inside the AI Checker tool.</div>
         </div>
 
         <div class="faq-section">
           <div class="faq-section-title">Other Questions</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="14" y2="18"/></svg> Summarize</div>
+          <div class="faq-a">Summarizes text you paste or load from a page. Choose Brief (2–3 sentences), Standard (1 paragraph), or Detailed (key points list). Great for quickly understanding an assignment or condensing something you just wrote.</div>
+
           <div class="faq-q">Is my text sent anywhere?</div>
           <div class="faq-a">Text is sent directly to the AI provider (Groq or OpenAI) using your own API key. ClownFish AI does not store or see your text.</div>
           <div class="faq-q">Why does Auto Typer close the popup?</div>
