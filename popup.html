@@ -182,17 +182,19 @@
 
       <ul class="paywall-features">
         <li>Auto Typer</li>
-        <li>Problem Solver (AI Writer + Question Solver)</li>
+        <li>AI Writer + Problem Solver</li>
         <li>AI Checker + Fact Check</li>
         <li>Rewriter</li>
         <li>Citations</li>
-        <li>Summarize</li>
+        <li>Summarize &amp; Explain</li>
       </ul>
+
+      <p style="font-size:11px;text-align:center;margin-bottom:12px"><a href="https://splintdeveloper.github.io/ClownFishAI/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:500">Learn more at our website →</a></p>
 
       <!-- Signed-in actions -->
       <div id="paywall-actions">
         <button class="btn primary full" id="paywall-buy-btn">Unlock for $0.99</button>
-        <button class="btn ghost full sm" id="paywall-paid-btn" style="margin-top:6px">I've already paid →</button>
+        <button class="btn ghost full" id="paywall-paid-btn" style="margin-top:6px">I've already paid →</button>
         <div class="modal-divider" style="margin:12px 0"><span>or enter promo code</span></div>
         <div class="row gap-2">
           <input class="modal-input" type="text" id="paywall-promo-input" placeholder="Promo code" style="margin:0;flex:1">
@@ -362,8 +364,8 @@
         </div>
         <textarea id="facts-text" placeholder="Paste text to fact-check..." rows="4"></textarea>
         <div class="row gap-2">
-          <button class="btn primary full" id="facts-btn">Check Facts</button>
-          <button class="btn ghost sm" id="facts-highlight-btn" style="flex-shrink:0;white-space:nowrap" title="Highlight false/uncertain text in page">Highlight</button>
+          <button class="btn primary" id="facts-btn" style="flex:1">Check Facts</button>
+          <button class="btn ghost" id="facts-highlight-btn" style="flex-shrink:0;white-space:nowrap" title="Highlight false/uncertain text in page">Highlight</button>
         </div>
         <div id="facts-results" class="hidden"></div>
       </div>
@@ -383,6 +385,15 @@
       <div class="setting-row">
         <label>Humanization Level <span id="intensity-display">5</span>/10</label>
         <input type="range" id="intensity-slider" min="1" max="10" value="5" step="1">
+      </div>
+      <div class="setting-row">
+        <label>Language Level <span id="lang-display">Neutral</span></label>
+        <input type="range" id="lang-slider" min="1" max="5" value="3" step="1">
+      </div>
+      <div class="lang-level-labels">
+        <span>Very Casual</span>
+        <span>Neutral</span>
+        <span>Very Academic</span>
       </div>
       <div class="setting-row">
         <label>Personalized Writing Style <span id="style-display">0</span>/10</label>
@@ -422,7 +433,8 @@
       <!-- Mode switcher -->
       <div class="tool-mode-switcher">
         <button class="tool-mode-btn active" data-mode="writer" data-panel="solver">AI Writer</button>
-        <button class="tool-mode-btn" data-mode="problems" data-panel="solver">Problem Solver</button>
+        <button class="tool-mode-btn" data-mode="problems" data-panel="solver">Multi Problem Solver</button>
+        <button class="tool-mode-btn" data-mode="lab" data-panel="solver">Lab Report</button>
       </div>
 
       <!-- AI WRITER section -->
@@ -529,7 +541,7 @@
           <div id="mc-answer-wrap" class="hidden">
             <textarea id="mc-answer-textarea" rows="4" placeholder="AI-generated answer will appear here — edit freely before typing…" style="margin-bottom:6px;resize:vertical"></textarea>
             <div class="row gap-2">
-              <button class="btn ghost sm" id="mc-regen-btn">↺ New Answer</button>
+              <button class="btn ghost" id="mc-regen-btn" style="flex-shrink:0">↺ New Answer</button>
               <button class="btn primary" id="mc-autotype-btn" style="flex:1">Auto-Type &amp; Next →</button>
             </div>
           </div>
@@ -553,6 +565,37 @@
         </div>
       </div>
 
+      <!-- LAB REPORT section -->
+      <div class="tool-mode-section hidden" id="solver-lab-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Describe your lab — AI writes the full report</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="lab-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="lab-clear-btn">Clear</button>
+          </div>
+        </div>
+        <select id="lab-type" class="cite-style-select" style="width:100%;margin-bottom:6px">
+          <option value="auto">Auto-detect subject</option>
+          <option value="biology">Biology</option>
+          <option value="chemistry">Chemistry</option>
+          <option value="physics">Physics</option>
+          <option value="environmental">Environmental Science</option>
+          <option value="other">Other Science</option>
+        </select>
+        <textarea id="lab-input" placeholder="Describe your lab: what was it about? What did you do? What happened / what did you observe? Include any numbers or measurements you have..." rows="5"></textarea>
+        <button class="btn primary full" id="lab-btn" style="margin-top:6px">Generate Lab Report</button>
+        <div class="hidden" id="lab-output-wrap">
+          <div class="output-header" style="margin-top:10px">
+            <span>Lab Report</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="lab-copy-btn">Copy</button>
+              <button class="btn ghost sm" id="lab-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            </div>
+          </div>
+          <textarea id="lab-output" rows="10" readonly style="margin-top:6px"></textarea>
+        </div>
+      </div>
+
     </div>
 
     <!-- AI CITE -->
@@ -565,46 +608,82 @@
         </div>
       </div>
       <textarea id="cite-text" placeholder="Paste text to find citation sources for..." rows="4"></textarea>
-      <div class="row gap-2">
-        <select id="cite-style" class="cite-style-select">
-          <option value="MLA">MLA</option>
-          <option value="APA">APA</option>
-          <option value="Chicago">Chicago</option>
-        </select>
-        <button class="btn primary" id="cite-btn" style="flex-shrink:0">Find Sources</button>
-      </div>
+      <select id="cite-style" class="cite-style-select" style="width:100%;margin-bottom:8px">
+        <option value="MLA">MLA</option>
+        <option value="APA">APA</option>
+        <option value="Chicago">Chicago</option>
+      </select>
+      <button class="btn primary full" id="cite-btn">Find Sources</button>
       <div id="cite-results" class="hidden"></div>
     </div>
 
 
-    <!-- SUMMARIZE -->
+    <!-- SUMMARIZE & EXPLAIN -->
     <div class="panel" id="panel-aiSummarize">
-      <div class="row space">
-        <span class="text-muted" style="font-size:11px">Paste text or load from page to summarize</span>
-        <div class="row gap-2">
-          <button class="btn ghost sm" id="summarize-fromdoc-btn">From Doc</button>
-          <button class="btn ghost sm" id="summarize-clear-btn">Clear</button>
-        </div>
+
+      <!-- Mode switcher -->
+      <div class="tool-mode-switcher">
+        <button class="tool-mode-btn active" data-mode="summarize" data-panel="summarize">Summarize</button>
+        <button class="tool-mode-btn" data-mode="explain" data-panel="summarize">Explain</button>
       </div>
-      <textarea id="summarize-input" placeholder="Paste text you want summarized — an assignment, article, essay, or anything you just wrote..." rows="5"></textarea>
-      <div class="row gap-2" style="align-items:center">
-        <select id="summarize-length" class="cite-style-select" style="flex:1">
-          <option value="short">Brief (2–3 sentences)</option>
-          <option value="medium" selected>Standard (1 paragraph)</option>
-          <option value="detailed">Detailed (key points list)</option>
-        </select>
-        <button class="btn primary" id="summarize-btn" style="flex:1">Summarize</button>
-      </div>
-      <div class="hidden" id="summarize-output-wrap">
-        <div class="output-header" style="margin-top:10px">
-          <span>Summary</span>
+
+      <!-- SUMMARIZE section -->
+      <div class="tool-mode-section" id="summarize-summarize-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Paste text or load from page to summarize</span>
           <div class="row gap-2">
-            <button class="btn ghost sm" id="summarize-copy-btn">Copy</button>
-            <button class="btn ghost sm" id="summarize-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            <button class="btn ghost sm" id="summarize-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="summarize-clear-btn">Clear</button>
           </div>
         </div>
-        <textarea id="summarize-output" rows="5" readonly style="margin-top:6px"></textarea>
+        <textarea id="summarize-input" placeholder="Paste text you want summarized — an assignment, article, essay, or anything you just wrote..." rows="5"></textarea>
+        <select id="summarize-length" class="cite-style-select" style="width:100%;margin-bottom:8px">
+          <option value="one">1 sentence</option>
+          <option value="short" selected>Brief (2–3 sentences)</option>
+          <option value="medium">Standard (1 paragraph)</option>
+          <option value="detailed">Detailed (key points list)</option>
+        </select>
+        <button class="btn primary full" id="summarize-btn">Summarize</button>
+        <div class="hidden" id="summarize-output-wrap">
+          <div class="output-header" style="margin-top:10px">
+            <span>Summary</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="summarize-copy-btn">Copy</button>
+              <button class="btn ghost sm" id="summarize-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            </div>
+          </div>
+          <textarea id="summarize-output" rows="5" readonly style="margin-top:6px"></textarea>
+        </div>
       </div>
+
+      <!-- EXPLAIN section -->
+      <div class="tool-mode-section hidden" id="summarize-explain-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Paste anything confusing for a plain-English breakdown</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="explain-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="explain-clear-btn">Clear</button>
+          </div>
+        </div>
+        <textarea id="explain-input" placeholder="Paste a confusing assignment, reading, concept, question, or passage — get a plain-English explanation..." rows="5"></textarea>
+        <select id="explain-level" class="cite-style-select" style="width:100%;margin-bottom:8px">
+          <option value="simple">Simple (5th grade level)</option>
+          <option value="student" selected>Student-friendly</option>
+          <option value="detailed">Detailed breakdown</option>
+        </select>
+        <button class="btn primary full" id="explain-btn">Explain</button>
+        <div class="hidden" id="explain-output-wrap">
+          <div class="output-header" style="margin-top:10px">
+            <span>Explanation</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="explain-copy-btn">Copy</button>
+              <button class="btn ghost sm" id="explain-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            </div>
+          </div>
+          <textarea id="explain-output" rows="5" readonly style="margin-top:6px"></textarea>
+        </div>
+      </div>
+
     </div>
 
   </div><!-- end #panel-view -->
@@ -613,6 +692,8 @@
   <footer>
     <span class="footer-brand">CLOWNFISH v2.0</span>
     <div class="footer-links">
+      <a class="footer-link" href="https://splintdeveloper.github.io/ClownFishAI/" target="_blank" rel="noopener">Website</a>
+      <span class="footer-sep">·</span>
       <a class="footer-link" href="https://splintdeveloper.github.io/ClownFishAI/privacy.html" target="_blank" rel="noopener">Privacy</a>
       <span class="footer-sep">·</span>
       <span class="footer-link" id="footer-settings">Settings <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-left:2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
