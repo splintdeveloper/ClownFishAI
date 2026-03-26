@@ -463,6 +463,16 @@
           <button class="btn primary" id="writer-btn" style="flex:1">Write</button>
           <button class="btn ghost" id="writer-advanced-btn" style="flex:1">Advanced Write</button>
         </div>
+        <div class="writer-options-row">
+          <label class="writer-option-check">
+            <input type="checkbox" id="writer-track-sources">
+            <span>Track sources</span>
+          </label>
+          <label class="writer-option-check">
+            <input type="checkbox" id="writer-inline-cite">
+            <span>Inline citations</span>
+          </label>
+        </div>
 
         <!-- STEP 1 — Direction Selection -->
         <div class="hidden" id="writer-directions-wrap">
@@ -493,6 +503,15 @@
             </div>
           </div>
           <textarea id="writer-output" rows="7" readonly style="margin-top:6px"></textarea>
+        </div>
+
+        <!-- Sources box (shown when Track sources or Inline citations is on) -->
+        <div class="hidden" id="writer-sources-wrap">
+          <div class="output-header" style="margin-top:8px">
+            <span>Sources Used</span>
+            <button class="btn ghost sm" id="writer-cite-sources-btn">Cite Sources →</button>
+          </div>
+          <div id="writer-sources-list"></div>
         </div>
       </div>
 
@@ -607,7 +626,7 @@
           <button class="btn ghost sm" id="cite-clear-btn">Clear</button>
         </div>
       </div>
-      <textarea id="cite-text" placeholder="Paste text to find citation sources for..." rows="4"></textarea>
+      <textarea id="cite-text" placeholder="Paste text to find citation sources for, or paste a URL to cite that page directly..." rows="4"></textarea>
       <select id="cite-style" class="cite-style-select" style="width:100%;margin-bottom:8px">
         <option value="MLA">MLA</option>
         <option value="APA">APA</option>

@@ -199,10 +199,10 @@ header {
 .panel {
   display: none;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 14px 16px;
+  gap: 12px;
+  padding: 16px 16px 22px;
   min-height: 260px;
-  max-height: 420px;
+  max-height: 430px;
   overflow-y: auto;
   background: #fff;
 }
@@ -219,13 +219,13 @@ header {
 textarea, input[type="text"] {
   width: 100%;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
   color: var(--text);
   font-family: inherit;
-  font-size: 12.5px;
-  line-height: 1.5;
-  padding: 9px 11px;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 10px 12px;
   resize: vertical;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -261,9 +261,9 @@ input[type="range"] {
   border-radius: var(--radius);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 8px 14px;
+  padding: 9px 14px;
   transition: opacity 0.15s, transform 0.1s, background 0.15s;
   white-space: nowrap;
 }
@@ -275,10 +275,33 @@ input[type="range"] {
 .btn.primary {
   background: var(--accent);
   color: white;
-  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.22);
+  padding: 9px 15px;
+  font-size: 12.5px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.28);
 }
 
 .btn.primary:hover { background: var(--accent2); opacity: 1; }
+
+/* ── Full-width primary = the "generate" button — make it the star ── */
+.btn.primary.full {
+  padding: 11px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(249, 115, 22, 0.34);
+  letter-spacing: 0.01em;
+}
+.btn.primary.full:hover {
+  background: var(--accent2);
+  box-shadow: 0 6px 22px rgba(249, 115, 22, 0.44);
+  transform: translateY(-1px);
+  opacity: 1;
+}
+.btn.primary.full:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+}
 
 .btn.danger {
   background: rgba(239, 68, 68, 0.07);
@@ -302,8 +325,9 @@ input[type="range"] {
 }
 
 .btn.sm {
-  font-size: 11px;
-  padding: 5px 10px;
+  font-size: 10.5px;
+  padding: 4px 9px;
+  font-weight: 500;
 }
 
 .btn.full {
@@ -314,7 +338,7 @@ input[type="range"] {
 .setting-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .setting-row label {
@@ -328,6 +352,16 @@ input[type="range"] {
 .setting-row label span {
   color: var(--accent);
   font-weight: 600;
+}
+
+/* ─── Language Level labels ─────────────────────────────────────────────────── */
+.lang-level-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: -4px;
+  padding: 0 2px;
 }
 
 /* ─── Row utilities ──────────────────────────────────────────────────────────── */
@@ -404,9 +438,9 @@ input[type="range"] {
 /* ─── AI Result Card ─────────────────────────────────────────────────────────── */
 .result-card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -531,11 +565,14 @@ input[type="range"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  padding-top: 6px;
+  border-top: 1.5px solid var(--border);
+  margin-top: 2px;
 }
 
 /* ─── Spinner ────────────────────────────────────────────────────────────────── */
@@ -556,9 +593,10 @@ input[type="range"] {
 
 /* ─── Hint Text ──────────────────────────────────────────────────────────────── */
 .hint {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--muted);
   text-align: center;
+  line-height: 1.5;
 }
 
 /* ─── Divider ────────────────────────────────────────────────────────────────── */
@@ -623,13 +661,13 @@ footer {
 /* ─── Citation Style Select ──────────────────────────────────────────────────── */
 .cite-style-select {
   flex: 1;
-  height: 34px;
+  height: 40px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
   color: var(--text);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   padding: 0 10px;
   outline: none;
   cursor: pointer;
@@ -1129,41 +1167,50 @@ footer {
 /* ─── Tool Mode Switcher (tab toggle inside a panel) ────────────────────────── */
 .tool-mode-switcher {
   display: flex;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--surface2);
+  border: none;
+  border-radius: 11px;
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
   flex-shrink: 0;
+  padding: 3px;
+  gap: 2px;
 }
 
 .tool-mode-btn {
   flex: 1;
-  padding: 6px 0;
+  padding: 7px 0;
   font-size: 11.5px;
   font-weight: 600;
   background: transparent;
   border: none;
   cursor: pointer;
   color: var(--muted);
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
   letter-spacing: 0.01em;
-}
-
-.tool-mode-btn + .tool-mode-btn {
-  border-left: 1px solid var(--border);
+  border-radius: 9px;
 }
 
 .tool-mode-btn.active {
-  background: var(--accent);
-  color: #fff;
+  background: #fff;
+  color: var(--accent);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.10);
+}
+
+body.dark .tool-mode-btn.active {
+  background: var(--surface);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.35);
 }
 
 .tool-mode-btn:not(.active):hover {
-  background: rgba(249, 115, 22, 0.08);
-  color: var(--accent);
+  background: rgba(255,255,255,0.55);
+  color: var(--muted2);
 }
 
 .tool-mode-section.hidden { display: none; }
+
+/* 3-tab solver switcher — tighter text to fit */
+#panel-aiSearch .tool-mode-btn { font-size: 10px; }
 
 /* ─── Quick tool nav row ─────────────────────────────────────────────────────── */
 .tool-quick-nav {
@@ -1212,14 +1259,14 @@ footer {
 
 .panel-back-btn {
   background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--accent);
-  font-size: 11.5px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted2);
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px 9px;
+  padding: 4px 10px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
   font-family: inherit;
@@ -1886,3 +1933,71 @@ body.dark .mc-answer-btn   { background: var(--surface); }
   margin-top: 8px;
   text-align: center;
 }
+
+/* ─── Writer options (Track sources / Inline citations checkboxes) ─────────── */
+.writer-options-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.writer-option-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--muted2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.writer-option-check input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+}
+
+.writer-option-check:hover { color: var(--text); }
+
+/* ─── Writer Sources Box ─────────────────────────────────────────────────── */
+#writer-sources-list {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.writer-source-item {
+  padding: 7px 9px;
+  background: var(--surface2);
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.writer-source-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1px;
+}
+
+.writer-source-author {
+  color: var(--muted2);
+  font-size: 10.5px;
+}
+
+.writer-source-url {
+  display: block;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 10.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.writer-source-url:hover { text-decoration: underline; }
+
+body.dark .writer-source-item { background: var(--surface2); }

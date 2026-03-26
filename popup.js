@@ -18,6 +18,18 @@ async function sendToContent(action, data = {}) {
   }
 }
 
+// Capture the visible area of the active tab as a JPEG data URL.
+// Returns null (never throws) so callers can safely fall back to text-only mode.
+async function captureScreenshot() {
+  try {
+    const tab = await getActiveTab();
+    if (!tab?.windowId) return null;
+    return await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'jpeg', quality: 85 });
+  } catch (e) {
+    return null;
+  }
+}
+
 async function getSelectedText() {
   const res = await sendToContent('getSelectedText');
   return res?.text || '';
@@ -44,20 +56,35 @@ const ENDPOINTS = {
 };
 
 // ─── AI API call (works with both Groq and OpenAI) ────────────────────────────
-async function callOpenAI({ system, user, json = false, temperature = 0.3 }) {
+async function callOpenAI({ system, user, json = false, temperature = 0.3, imageDataUrl = null }) {
   const data = await chrome.storage.local.get(['apiKey', 'model', 'provider']);
   const apiKey   = data.apiKey;
   const provider = data.provider || 'groq';
   const ep       = ENDPOINTS[provider] || ENDPOINTS.groq;
-  const model    = data.model || ep.defaultModel;
+  let   model    = data.model || ep.defaultModel;
 
   if (!apiKey) throw new Error('NO_API_KEY');
+
+  // Vision: upgrade to a vision-capable model when an image is supplied
+  if (imageDataUrl) {
+    model = provider === 'openai'
+      ? (model.startsWith('gpt-4') ? model : 'gpt-4o-mini')
+      : 'llama-3.2-11b-vision-preview';
+  }
+
+  // Format user message: multimodal array when image present, plain string otherwise
+  const userContent = imageDataUrl
+    ? [
+        { type: 'text',      text: user },
+        { type: 'image_url', image_url: { url: imageDataUrl, detail: 'high' } },
+      ]
+    : user;
 
   const body = {
     model,
     messages: [
       { role: 'system', content: system },
-      { role: 'user', content: user },
+      { role: 'user',   content: userContent },
     ],
     temperature,
   };
@@ -65,7 +92,8 @@ async function callOpenAI({ system, user, json = false, temperature = 0.3 }) {
   // Only apply json_object format for non-checker calls.
   // Some Groq model versions output stub JSON when this flag is set with
   // complex scoring prompts — callers that need it still pass json:true.
-  if (json) body.response_format = { type: 'json_object' };
+  // Groq vision models do not support the json_object response format.
+  if (json && !(imageDataUrl && provider === 'groq')) body.response_format = { type: 'json_object' };
 
   const res = await fetch(ep.url, {
     method: 'POST',
@@ -200,7 +228,21 @@ function switchSolverMode(mode) {
   });
   $('solver-writer-section').classList.toggle('hidden', mode !== 'writer');
   $('solver-problems-section').classList.toggle('hidden', mode !== 'problems');
+  $('solver-lab-section').classList.toggle('hidden', mode !== 'lab');
 }
+
+// ─── Summarize / Explain Mode Switcher ────────────────────────────────────────
+function switchSummarizeMode(mode) {
+  document.querySelectorAll('#panel-aiSummarize .tool-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  $('summarize-summarize-section').classList.toggle('hidden', mode !== 'summarize');
+  $('summarize-explain-section').classList.toggle('hidden', mode !== 'explain');
+}
+
+document.querySelectorAll('#panel-aiSummarize .tool-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchSummarizeMode(btn.dataset.mode));
+});
 
 document.querySelectorAll('#panel-aiChecker .tool-mode-btn').forEach(btn => {
   btn.addEventListener('click', () => switchCheckerMode(btn.dataset.mode));
@@ -560,7 +602,7 @@ $('paywall-signin-btn').addEventListener('click', () => showAuthModal(false));
     'typerRunning', 'typerProgress', 'typerComplete',
     'contextPending', 'selectionPending',
     'saved_typer', 'saved_checker', 'saved_rewriter',
-    'saved_writer', 'saved_cite', 'saved_facts', 'saved_summarize',
+    'saved_writer', 'saved_cite', 'saved_facts', 'saved_summarize', 'saved_explain', 'saved_lab',
   ]);
 
   if (!data.apiKey) {
@@ -575,6 +617,8 @@ $('paywall-signin-btn').addEventListener('click', () => showAuthModal(false));
   if (data.saved_cite)      $('cite-text').value        = data.saved_cite;
   if (data.saved_facts)     $('facts-text').value       = data.saved_facts;
   if (data.saved_summarize) $('summarize-input').value  = data.saved_summarize;
+  if (data.saved_explain)   $('explain-input').value    = data.saved_explain;
+  if (data.saved_lab)       $('lab-input').value        = data.saved_lab;
 
   // Restore typer defaults
   if (data.defaultWpm) {
@@ -767,6 +811,8 @@ setInterval(async () => {
   ['cite-text',       'saved_cite'],
   ['facts-text',      'saved_facts'],
   ['summarize-input', 'saved_summarize'],
+  ['explain-input',   'saved_explain'],
+  ['lab-input',       'saved_lab'],
 ].forEach(([elId, key]) => {
   const el = $(elId);
   if (el) el.addEventListener('input', () => chrome.storage.local.set({ [key]: el.value }));
@@ -808,6 +854,16 @@ $('summarize-clear-btn').addEventListener('click', () => {
   $('summarize-output-wrap').classList.add('hidden');
   chrome.storage.local.remove('saved_summarize');
 });
+$('explain-clear-btn').addEventListener('click', () => {
+  $('explain-input').value = '';
+  $('explain-output-wrap').classList.add('hidden');
+  chrome.storage.local.remove('saved_explain');
+});
+$('lab-clear-btn').addEventListener('click', () => {
+  $('lab-input').value = '';
+  $('lab-output-wrap').classList.add('hidden');
+  chrome.storage.local.remove('saved_lab');
+});
 
 // Clear All — wipes every tool's inputs and results at once
 $('clear-all-btn').addEventListener('click', () => {
@@ -834,6 +890,12 @@ $('clear-all-btn').addEventListener('click', () => {
   // Summarize
   $('summarize-input').value = '';
   $('summarize-output-wrap').classList.add('hidden');
+  // Explain
+  $('explain-input').value = '';
+  $('explain-output-wrap').classList.add('hidden');
+  // Lab Report
+  $('lab-input').value = '';
+  $('lab-output-wrap').classList.add('hidden');
   // Problem Solver (Multi-Problem session)
   $('mc-session').classList.add('hidden');
   $('mc-empty-state').classList.remove('hidden');
@@ -844,7 +906,7 @@ $('clear-all-btn').addEventListener('click', () => {
   $('mc-load-btn').textContent = 'Load Questions from Doc';
   sendToContent('clearMCHighlight');
   // Remove all saved storage
-  chrome.storage.local.remove(['saved_typer','saved_checker','saved_rewriter','saved_writer','saved_cite','saved_facts','saved_summarize','mc_questions','mc_current_idx','mc_answers_cache','mc_doc_context','mc_plan']);
+  chrome.storage.local.remove(['saved_typer','saved_checker','saved_rewriter','saved_writer','saved_cite','saved_facts','saved_summarize','saved_explain','saved_lab','mc_questions','mc_current_idx','mc_answers_cache','mc_doc_context','mc_plan']);
 });
 
 // From Doc buttons — pull text from the active tab into each tool's textarea
@@ -854,6 +916,8 @@ $('writer-fromdoc-btn').addEventListener('click',   (e) => loadFromDoc(e.current
 $('cite-fromdoc-btn').addEventListener('click',     (e) => loadFromDoc(e.currentTarget, 'cite-text'));
 $('facts-fromdoc-btn').addEventListener('click',    (e) => loadFromDoc(e.currentTarget, 'facts-text'));
 $('summarize-fromdoc-btn').addEventListener('click',(e) => loadFromDoc(e.currentTarget, 'summarize-input'));
+$('explain-fromdoc-btn').addEventListener('click',  (e) => loadFromDoc(e.currentTarget, 'explain-input'));
+$('lab-fromdoc-btn').addEventListener('click',      (e) => loadFromDoc(e.currentTarget, 'lab-input'));
 
 // ─── AI CHECKER ───────────────────────────────────────────────────────────────
 let lastCheckerResult = null;
@@ -961,6 +1025,11 @@ function renderCheckerResult({ score, confidence, verdict, indicators }) {
 
 $('intensity-slider').addEventListener('input', () => {
   $('intensity-display').textContent = $('intensity-slider').value;
+});
+
+const LANG_LABELS = { 1: 'Very Casual', 2: 'Casual', 3: 'Neutral', 4: 'Academic', 5: 'Very Academic' };
+$('lang-slider').addEventListener('input', () => {
+  $('lang-display').textContent = LANG_LABELS[$('lang-slider').value] || 'Neutral';
 });
 
 $('style-slider').addEventListener('input', () => {
@@ -1090,6 +1159,7 @@ $('rewriter-btn').addEventListener('click', async () => {
   if (!text) { flashError($('rewriter-input'), 'Enter text to humanize.'); return; }
 
   const intensity  = $('intensity-slider').value;
+  const langLevel  = parseInt($('lang-slider').value, 10);
   const styleLevel = parseInt($('style-slider').value, 10);
   const btn = $('rewriter-btn');
   setLoading(btn, true, 'Humanizing…');
@@ -1143,10 +1213,17 @@ ALWAYS:
 8. Vary sentence openings — no two consecutive sentences start the same way; mix subject-first, "And/But/So" starts, dependent clauses, time/place details
 9. Break structural symmetry — if paragraphs all follow the same intro→expand→conclude pattern, break it; reorganize so the structure feels less planned
 
-INTENSITY ${intensity}/10 — depth of rewrite and vocabulary casualness:
+INTENSITY ${intensity}/10 — depth of rewrite:
 • 1-3: Vocabulary/cliché cleanup only. Swap formal words for plain ones, add contractions, fix passive voice, minimal restructuring.
-• 4-6: Rewrite full sentences and clauses that sound like a textbook. Change how things are expressed, not just the words. Make sure sentence length rule (1) is enforced per paragraph. "The results indicated a substantial improvement in performance" → "The results showed it was working a lot better."
-• 7-10: Rebuild every sentence that sounds AI-written from scratch. Would a real person say this? If not, rebuild it. Enforce sentence length rule (1) strictly. Use everyday vocabulary — nothing academic or polished. "As industrialization accelerated, significant population migration from rural regions to urban centers was observed" → "As factories started showing up everywhere, people packed up and moved to the cities."
+• 4-6: Rewrite full sentences and clauses that sound like a textbook. Change how things are expressed, not just the words. Make sure sentence length rule (1) is enforced per paragraph.
+• 7-10: Rebuild every sentence that sounds AI-written from scratch. Would a real person say this? If not, rebuild it. Enforce sentence length rule (1) strictly.
+
+LANGUAGE LEVEL ${langLevel}/5 — controls vocabulary formality and tone. This is SEPARATE from intensity. Apply this regardless of how much rewriting is done:
+• 1 (Very Casual): Write like you're texting a friend. Use slang, contractions always, super simple words, short punchy sentences OK. "didn't work out", "kinda", "yeah", "a ton of", "messed up". No formal words at all.
+• 2 (Casual): Conversational and relaxed. Contractions always, plain everyday words, informal but clear. "didn't help", "a lot of", "shows", "gets worse", "back then".
+• 3 (Neutral): Natural everyday language — not stiff, not slangy. Contractions where natural. Plain words over formal ones, but nothing informal or unprofessional.
+• 4 (Academic): Formal and precise. Fewer contractions, proper terminology, structured sentences. Field-appropriate vocabulary OK. "demonstrates", "significant", "analysis indicates", "however", "therefore".
+• 5 (Very Academic): Scholarly and sophisticated. No contractions. Discipline-specific vocabulary, formal constructions, complex sentence structures appropriate for academic papers. "the data substantiates", "corroborates", "aforementioned", "posits", "in accordance with".
 
 PRESERVE all facts and meaning exactly. Do not add or remove anything.
 Return ONLY the rewritten text. No intro, no explanation.${styleBlock}`,
@@ -1181,11 +1258,15 @@ $('writer-btn').addEventListener('click', async () => {
   const prompt = $('writer-input').value.trim();
   if (!prompt) { flashError($('writer-input'), 'Enter an assignment or prompt first.'); return; }
 
-  const length = $('writer-length').value;
-  const tone   = $('writer-tone').value;
-  const btn    = $('writer-btn');
+  const length       = $('writer-length').value;
+  const tone         = $('writer-tone').value;
+  const trackSources = $('writer-track-sources').checked;
+  const inlineCite   = $('writer-inline-cite').checked;
+  const wantSources  = trackSources || inlineCite;
+  const btn          = $('writer-btn');
   setLoading(btn, true, 'Writing…');
   $('writer-output-wrap').classList.add('hidden');
+  $('writer-sources-wrap').classList.add('hidden');
 
   const lengthGuide = {
     short:  '1–2 paragraphs (roughly 100–200 words)',
@@ -1198,6 +1279,14 @@ $('writer-btn').addEventListener('click', async () => {
     casual:   'Use a relaxed, conversational tone. Write the way a smart person talks — clear, direct, personable, occasionally funny or self-aware.',
     creative: 'Use a vivid, engaging creative voice. Strong imagery, varied rhythm, personality, and originality.',
   }[tone];
+
+  const inlineInstruction = inlineCite ? `
+INLINE CITATIONS: After each sentence or clause that draws on a specific source, add a brief parenthetical citation in MLA format: (Author Last Name) or (Author Last Name page#) for print, or (Organization) for websites. Place the citation before the period. Do NOT add a Works Cited section — only the inline markers.` : '';
+
+  const sourcesInstruction = wantSources ? `
+SOURCES TAG: Immediately after the essay (on its own line), output a <SOURCES> block containing a JSON array of the sources you referenced or would reference for the claims in this essay. Format:
+<SOURCES>[{"title":"Full Source Title","author":"Author Name or Organization","url":"https://authoritative-url.com","year":"YYYY"}]</SOURCES>
+Use authoritative sources (academic journals, .gov, .edu, major publications). Provide realistic URLs — the actual homepage or article URL if known, otherwise the publisher's homepage.` : '';
 
   try {
     const result = await callOpenAI({
@@ -1215,13 +1304,25 @@ CRITICAL — make it sound unmistakably human:
 • Don't start every paragraph with a topic sentence. Let ideas develop more organically.
 • Include one small concrete detail or specific example that makes it feel real and researched.
 • End strongly — not with a generic summary sentence.
-
-Return ONLY the written content. No preamble, no "Here is your essay:", no explanation.`,
+${inlineInstruction}${sourcesInstruction}
+Return the written content${wantSources ? ' followed by the <SOURCES> block' : ''}. No preamble, no "Here is your essay:", no explanation.`,
       user: prompt,
     });
 
-    $('writer-output').value = result;
+    let essayText = result;
+    let sources = [];
+    if (wantSources) {
+      const m = result.match(/<SOURCES>([\s\S]*?)<\/SOURCES>/);
+      if (m) {
+        try { sources = JSON.parse(m[1]); } catch {}
+        essayText = result.replace(/<SOURCES>[\s\S]*?<\/SOURCES>/, '').trim();
+      }
+    }
+
+    $('writer-output').value = essayText;
     $('writer-output-wrap').classList.remove('hidden');
+    if (wantSources && sources.length) renderWriterSources(sources);
+
   } catch (e) {
     if (e.message === 'NO_API_KEY') {
       $('api-warning').classList.remove('hidden');
@@ -1245,6 +1346,21 @@ $('writer-autotype-btn').addEventListener('click', () => {
 // ─── ADVANCED WRITER ──────────────────────────────────────────────────────────
 
 let advSelectedDirection = null; // holds the chosen direction object between steps
+let writerTrackedSources = [];  // sources tracked during last write, for "Cite Sources"
+
+// Render sources list in the writer sources box
+function renderWriterSources(sources) {
+  writerTrackedSources = sources;
+  const list = $('writer-sources-list');
+  list.innerHTML = sources.map(s => `
+    <div class="writer-source-item">
+      <div class="writer-source-title">${escHtml(s.title || 'Unknown Source')}</div>
+      ${s.author ? `<div class="writer-source-author">${escHtml(s.author)}</div>` : ''}
+      ${s.url ? `<a class="writer-source-url" href="${escHtml(s.url)}" target="_blank" rel="noopener">${escHtml(s.url)}</a>` : ''}
+    </div>
+  `).join('');
+  $('writer-sources-wrap').classList.remove('hidden');
+}
 
 // Helper: show only the writer UI elements for a given step
 function advShowStep(step) {
@@ -1440,15 +1556,19 @@ $('writer-outline-back-btn').addEventListener('click', () => {
 
 // STEP 2 → STEP 3: Generate the full essay from approved outline
 $('writer-generate-btn').addEventListener('click', async () => {
-  const prompt  = $('writer-input').value.trim();
-  const outline = $('writer-outline-text').value.trim();
-  const length  = $('writer-length').value;
-  const btn     = $('writer-generate-btn');
+  const prompt       = $('writer-input').value.trim();
+  const outline      = $('writer-outline-text').value.trim();
+  const length       = $('writer-length').value;
+  const trackSources = $('writer-track-sources').checked;
+  const inlineCite   = $('writer-inline-cite').checked;
+  const wantSources  = trackSources || inlineCite;
+  const btn          = $('writer-generate-btn');
 
   if (!outline) { flashError($('writer-outline-text'), 'Outline is empty.'); return; }
 
   setLoading(btn, true, 'Writing…');
   $('writer-output-wrap').classList.add('hidden');
+  $('writer-sources-wrap').classList.add('hidden');
 
   const lengthGuide = {
     short:  '1–2 paragraphs (roughly 100–200 words)',
@@ -1459,6 +1579,13 @@ $('writer-generate-btn').addEventListener('click', async () => {
   const toneGuide = advSelectedDirection
     ? `Tone: ${advSelectedDirection.tone}. Sources level: ${advSelectedDirection.sources}.`
     : '';
+
+  const inlineInstruction = inlineCite ? `
+INLINE CITATIONS: After each sentence or clause that draws on a specific source, add a brief parenthetical citation in MLA format: (Author Last Name) or (Author Last Name page#) for print, or (Organization) for websites. Place the citation before the period. Do NOT add a Works Cited section — only the inline markers.` : '';
+
+  const sourcesInstruction = wantSources ? `
+SOURCES TAG: Immediately after the essay (on its own line), output a <SOURCES> block containing a JSON array of the sources you referenced or would reference. Format:
+<SOURCES>[{"title":"Full Source Title","author":"Author Name or Organization","url":"https://authoritative-url.com","year":"YYYY"}]</SOURCES>` : '';
 
   try {
     const result = await callOpenAI({
@@ -1476,8 +1603,8 @@ CRITICAL — make it sound unmistakably human:
 • Avoid AI clichés entirely: "Furthermore", "Moreover", "Additionally", "It is important to note", "In conclusion", "To summarize", "Certainly", "Delve into", "Comprehensive", "Leverage", "Utilize".
 • Include one concrete detail or specific example that makes it feel real.
 • End strongly — not with a generic summary sentence.
-
-Return ONLY the written content. No preamble, no labels, no explanation.`,
+${inlineInstruction}${sourcesInstruction}
+Return the written content${wantSources ? ' followed by the <SOURCES> block' : ''}. No preamble, no labels, no explanation.`,
       user: `Original prompt: "${prompt}"
 
 Outline to follow:
@@ -1485,8 +1612,19 @@ ${outline}`,
       temperature: 0.75,
     });
 
-    $('writer-output').value = result;
+    let essayText = result;
+    let sources = [];
+    if (wantSources) {
+      const m = result.match(/<SOURCES>([\s\S]*?)<\/SOURCES>/);
+      if (m) {
+        try { sources = JSON.parse(m[1]); } catch {}
+        essayText = result.replace(/<SOURCES>[\s\S]*?<\/SOURCES>/, '').trim();
+      }
+    }
+
+    $('writer-output').value = essayText;
     advShowStep('essay');
+    if (wantSources && sources.length) renderWriterSources(sources);
 
   } catch (e) {
     if (e.message === 'NO_API_KEY') {
@@ -1506,41 +1644,98 @@ $('writer-clear-btn').addEventListener('click', () => {
   $('writer-directions-list').innerHTML = '';
   $('writer-outline-text').value = '';
   $('writer-output-wrap').classList.add('hidden');
+  $('writer-sources-wrap').classList.add('hidden');
+  writerTrackedSources = [];
 }, { capture: true }); // run before any other clear handler
+
+// "Cite Sources →" button: pre-populate the citations tool with tracked source URLs
+$('writer-cite-sources-btn').addEventListener('click', () => {
+  if (!writerTrackedSources.length) return;
+  const urls = writerTrackedSources
+    .map(s => s.url)
+    .filter(Boolean)
+    .join('\n');
+  $('cite-text').value = urls || writerTrackedSources.map(s => s.title).filter(Boolean).join('\n');
+  openPanel('aiCite');
+});
 
 // ─── AI CITE (Citations) ──────────────────────────────────────────────────────
 
 $('cite-btn').addEventListener('click', async () => {
   const text = $('cite-text').value.trim();
-  if (!text) { flashError($('cite-text'), 'Enter text to find sources.'); return; }
+  if (!text) { flashError($('cite-text'), 'Enter text or a URL.'); return; }
   const style = $('cite-style').value;
   const btn = $('cite-btn');
   setLoading(btn, true, 'Finding…');
   $('cite-results').classList.add('hidden');
 
-  try {
-    const raw = await callOpenAI({
-      system: `You are a citation assistant. Analyze the provided text and identify the key factual claims, statistics, referenced works, and specific data that would need academic citations.
+  // Detect if input is one or more URLs (every non-empty line is a URL)
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const isUrlMode = lines.every(l => /^https?:\/\//i.test(l));
 
-For each claim, suggest the most likely authoritative source (textbooks, academic journals, government databases, major publications). These are educated suggestions — the user MUST verify sources exist and contain this information before use in academic work.
+  // Style-specific format instructions
+  const styleGuide = {
+    MLA: `MLA 9th Edition rules:
+• Webpage: Last, First. "Page Title." Website Name, Day Mon. YYYY, URL.
+• Journal article: Last, First. "Article Title." Journal Name, vol. X, no. X, Mon. YYYY, pp. X–X. DOI or URL.
+• Book: Last, First. Book Title. Publisher, YYYY.
+• ALWAYS include the full URL at the end of web sources (not hyperlinked, just the raw URL).
+• Use hanging indent format in the "formatted" string (represent with two leading spaces on continuation lines).`,
+    APA: `APA 7th Edition rules:
+• Webpage: Last, F. M. (YYYY, Mon. DD). Title of page. Website Name. URL
+• Journal article: Last, F. M. (YYYY). Article title. Journal Name, Volume(Issue), pp–pp. https://doi.org/...
+• Book: Last, F. M. (YYYY). Book title. Publisher.
+• ALWAYS include the DOI or URL at the end of digital sources.
+• Use sentence case for article/book titles, title case for journal names.`,
+    Chicago: `Chicago 17th Edition (Notes-Bibliography) rules:
+• Webpage: Last, First. "Page Title." Website Name. Month DD, YYYY. URL.
+• Journal article: Last, First. "Article Title." Journal Name Volume, no. Issue (YYYY): pp–pp. URL or DOI.
+• Book: Last, First. Book Title. City: Publisher, YYYY.
+• ALWAYS include the URL at the end of web sources.`,
+  }[style] || `${style} citation style — follow the standard format for this style exactly, and include the URL at the end of all web sources.`;
 
-Format all citations in ${style} style, following the standard exactly.
+  const systemPrompt = isUrlMode
+    ? `You are an expert academic citation generator. The user has provided URL(s). For each URL, generate a complete, properly formatted ${style} citation as if you have visited the page. Infer the title, author, publisher, and date from the URL structure and domain when possible, or use reasonable defaults for the domain type.
 
-For the "url" field, provide the most likely direct URL to the source (e.g. "https://www.ncbi.nlm.nih.gov/pmc/articles/...", "https://www.jstor.org/stable/...", "https://doi.org/...", "https://www.nature.com/articles/..."). If no specific URL can be determined, provide the homepage of the most likely publisher or database (e.g. "https://www.jstor.org").
+${styleGuide}
+
+Return ONLY valid JSON:
+{
+  "citations": [
+    {
+      "claim": "Citation for: [inferred page title or domain]",
+      "formatted": "full ${style} citation string with URL included",
+      "url": "the exact URL provided",
+      "confidence": "high|medium|low",
+      "verify_note": "Visit the URL to verify the exact title, author, and date"
+    }
+  ]
+}`
+    : `You are an expert academic citation assistant. Analyze the provided text and identify each key factual claim, statistic, or piece of data that requires a citation. For each, suggest the most authoritative likely source.
+
+${styleGuide}
+
+These are AI-suggested sources — the user must verify they exist and contain this information.
+
+For the "url" field: provide the most likely direct URL (journal DOI, gov page, publisher article). If uncertain of a specific article URL, use the journal/publisher homepage.
 
 Return ONLY valid JSON:
 {
   "citations": [
     {
       "claim": "brief label for what this citation supports (max 15 words)",
-      "formatted": "full ${style} citation string",
-      "url": "direct URL to the source or publisher website",
+      "formatted": "full ${style} citation string with URL included at end",
+      "url": "most likely direct URL to source",
       "confidence": "high|medium|low",
-      "verify_note": "one short tip for verifying this source"
+      "verify_note": "one short tip for verifying this source exists"
     }
   ]
-}`,
-      user: text,
+}`;
+
+  try {
+    const raw = await callOpenAI({
+      system: systemPrompt,
+      user: isUrlMode ? `Generate ${style} citations for these URLs:\n${text}` : text,
       json: true,
     });
 
@@ -1739,22 +1934,48 @@ $('summarize-btn').addEventListener('click', async () => {
   $('summarize-output-wrap').classList.add('hidden');
 
   const lengthGuide = {
-    short:    'Write a brief summary in 2–3 sentences. Capture only the core idea.',
-    medium:   'Write a clear 1-paragraph summary covering the main points and purpose.',
-    detailed: 'List the key points as a bullet list. Each bullet should be a distinct, important takeaway. Use concise plain language.',
+    one:      'After the label line, write exactly 1 sentence that captures the single most important thing to know.',
+    short:    'Keep your response concise — 2–3 sentences after the label line.',
+    medium:   'Write a solid paragraph after the label line.',
+    detailed: 'After the label line, use a short paragraph followed by a bullet list of key points.',
   }[lengthMode];
 
   try {
     const result = await callOpenAI({
-      system: `You are a summarization assistant. Summarize the provided text clearly and concisely.
+      system: `You are a summarization assistant. Your job is to first identify what type of content the user has given you, then summarize it in a way that is most useful for understanding it quickly.
 
+STEP 1 — Identify the content type. Choose the single best match:
+- ASSIGNMENT: instructions, prompts, rubrics, or anything telling someone what they need to do or produce (essays, projects, lab reports, worksheets, discussion posts, etc.)
+- ESSAY / ARTICLE: a written body of text that argues, explains, or informs (student essays, news articles, blog posts, research summaries, etc.)
+- OTHER: anything else (emails, stories, notes, code, etc.)
+
+STEP 2 — Output format based on type:
+
+If ASSIGNMENT:
+Start with exactly: "This is an assignment."
+Then summarize:
+- What the assignment is asking you to do
+- What topics or content you need to cover
+- How to approach or structure it (e.g. write a 5-paragraph essay, answer each question, perform an experiment)
+
+If ESSAY / ARTICLE:
+Start with exactly: "This is an essay." or "This is an article." (pick whichever fits better)
+Then summarize:
+- What the piece is about and its main argument or point
+- The key ideas or evidence it covers
+
+If OTHER:
+Start with a one-line label describing what it is (e.g. "This is an email." / "This is a set of notes.")
+Then give a plain summary of what it contains.
+
+LENGTH GUIDE:
 ${lengthGuide}
 
 Rules:
-- Stay accurate to what the text actually says — do not add information
-- Use plain, clear language
-- Do not include preamble like "This text discusses..." or "Here is a summary:"
-- Return only the summary itself`,
+- Always start with the label line ("This is a/an ___.")
+- Stay accurate — do not add information not present in the text
+- Use plain, clear language — write as if explaining to a student
+- Do not say "Here is a summary:" or add any other preamble beyond the label`,
       user: text,
       temperature: 0.3,
     });
@@ -1779,6 +2000,124 @@ $('summarize-copy-btn').addEventListener('click', () => {
 
 $('summarize-autotype-btn').addEventListener('click', () => {
   sendToAutoTyper($('summarize-output').value);
+});
+
+// ─── EXPLAIN ──────────────────────────────────────────────────────────────────
+
+$('explain-btn').addEventListener('click', async () => {
+  const text = $('explain-input').value.trim();
+  if (!text) { flashError($('explain-input'), 'Paste something to explain.'); return; }
+
+  const level = $('explain-level').value;
+  const btn = $('explain-btn');
+  setLoading(btn, true, 'Explaining…');
+  $('explain-output-wrap').classList.add('hidden');
+
+  const levelGuide = {
+    simple:   "Explain this like you're talking to a 5th grader. Use extremely simple words, short sentences, and everyday examples. Avoid all jargon.",
+    student:  'Explain this clearly for a high school or college student who is confused. Break it down step by step using plain language with helpful examples.',
+    detailed: 'Give a thorough breakdown for a student. Explain each concept, define important terms, show why each part matters, and give context for how it all connects.',
+  }[level];
+
+  try {
+    const result = await callOpenAI({
+      system: `You are a tutor who makes confusing content clear. Your job is to EXPLAIN, not summarize.
+
+${levelGuide}
+
+How to approach it:
+1. Identify what type of content this is (assignment, concept, reading, math problem, question, etc.)
+2. Break it down so it actually makes sense — use examples, analogies, or comparisons where helpful
+3. If it's a question or problem, explain what it's really asking and how to approach it
+4. If there are key terms, define them in plain language
+5. For math or science: walk through the logic step by step
+6. End with a "Bottom line:" — one clear sentence capturing the most important thing to understand
+
+Do NOT just summarize. The goal is understanding, not brevity.
+Do NOT start with "Here is my explanation:" or any preamble.`,
+      user: text,
+      temperature: 0.4,
+    });
+
+    $('explain-output').value = result.trim();
+    $('explain-output-wrap').classList.remove('hidden');
+  } catch (e) {
+    if (e.message === 'NO_API_KEY') {
+      $('api-warning').classList.remove('hidden');
+      alert('Set your API key in Settings first.');
+    } else {
+      alert(`Explain failed: ${e.message}`);
+    }
+  } finally {
+    setLoading(btn, false);
+  }
+});
+
+$('explain-copy-btn').addEventListener('click', () => {
+  copyWithFeedback($('explain-copy-btn'), $('explain-output').value);
+});
+
+$('explain-autotype-btn').addEventListener('click', () => {
+  sendToAutoTyper($('explain-output').value);
+});
+
+// ─── LAB REPORT ───────────────────────────────────────────────────────────────
+
+$('lab-btn').addEventListener('click', async () => {
+  const text = $('lab-input').value.trim();
+  if (!text) { flashError($('lab-input'), 'Describe your lab first.'); return; }
+
+  const labType = $('lab-type').value;
+  const btn = $('lab-btn');
+  setLoading(btn, true, 'Writing report…');
+  $('lab-output-wrap').classList.add('hidden');
+
+  const subjectLine = labType === 'auto' ? '' : `This is a ${labType} lab. `;
+
+  try {
+    const result = await callOpenAI({
+      system: `You are a science student writing a lab report. ${subjectLine}Write a complete, well-structured lab report based on what the student describes.
+
+Use these sections with ALL-CAPS headers:
+1. TITLE — A clear, descriptive title for the lab
+2. HYPOTHESIS — What was expected to happen and why. Use If/Then/Because format: "If [condition], then [result], because [reason]."
+3. MATERIALS — Bulleted list of equipment and materials. Make reasonable assumptions if not all are listed.
+4. PROCEDURE — Numbered step-by-step list of what was done. Write in past tense.
+5. DATA / OBSERVATIONS — Invent realistic, specific, plausible data that fits the lab type. NEVER use placeholders like "[measured value]" — always make up real-looking numbers, measurements, or observations. Format as a table or numbered list with actual values. The data should show a clear trend or result that supports or contradicts the hypothesis in a believable way. Include trial variations, units, and enough detail to look like a real lab notebook entry.
+6. ANALYSIS — Interpret the fabricated data. Identify the trend or pattern shown, explain what it means scientifically, and name 2-3 realistic sources of error (e.g. parallax error, instrument calibration, human reaction time).
+7. CONCLUSION — Whether the hypothesis was supported or not based on the data, what was learned, and a brief real-world application.
+
+Rules:
+- Write in past tense for Procedure, Data, and Observations
+- Sound like a student who knows the subject — natural, not robotic
+- Use appropriate scientific vocabulary for the subject
+- Make all data internally consistent — the analysis and conclusion must match the numbers in the data section
+- Do NOT use any placeholders or tell the student to fill anything in
+- Do NOT start with "Here is your lab report:" or any preamble`,
+      user: text,
+      temperature: 0.6,
+    });
+
+    $('lab-output').value = result.trim();
+    $('lab-output-wrap').classList.remove('hidden');
+  } catch (e) {
+    if (e.message === 'NO_API_KEY') {
+      $('api-warning').classList.remove('hidden');
+      alert('Set your API key in Settings first.');
+    } else {
+      alert(`Lab report failed: ${e.message}`);
+    }
+  } finally {
+    setLoading(btn, false);
+  }
+});
+
+$('lab-copy-btn').addEventListener('click', () => {
+  copyWithFeedback($('lab-copy-btn'), $('lab-output').value);
+});
+
+$('lab-autotype-btn').addEventListener('click', () => {
+  sendToAutoTyper($('lab-output').value);
 });
 
 // ─── Utility: HTML escape ─────────────────────────────────────────────────────
@@ -1838,10 +2177,16 @@ $('mc-load-btn').addEventListener('click', async () => {
   setLoading(btn, true, 'Reading document…');
 
   try {
-    const res = await sendToContent('getPageText');
-    const docText = res?.text?.trim() || '';
+    // Capture screenshot and extract text in parallel for maximum context
+    const [screenshotDataUrl, textRes] = await Promise.all([
+      captureScreenshot(),
+      sendToContent('getPageText'),
+    ]);
 
-    if (!docText) {
+    const docText       = textRes?.text?.trim() || '';
+    const hasScreenshot = !!screenshotDataUrl;
+
+    if (!docText && !hasScreenshot) {
       setLoading(btn, false);
       flashError(btn, 'No text found in document. Make sure you\'re on a Google Doc or similar page.');
       btn.textContent = 'No text found';
@@ -1854,99 +2199,202 @@ $('mc-load-btn').addEventListener('click', async () => {
       return;
     }
 
-    // Step 1: Holistic analysis — understand the whole assignment before answering any part
-    setLoading(btn, true, 'Analyzing assignment…');
+    if (hasScreenshot) {
+      // ── Vision path: analyze full screenshot so charts, tables, and source
+      //    columns are never missed — then answer everything holistically ───────
+      setLoading(btn, true, 'Analyzing document…');
 
-    const planRaw = await callOpenAI({
-      system: `You are a student assistant. Read this entire assignment and form a complete holistic plan BEFORE filling in any individual field.
+      // Include any extracted text as supplemental context (helps with dense
+      // text that might be hard to OCR from the screenshot alone)
+      const visionPrompt = docText
+        ? `Below is text extracted from this document (may be incomplete for charts/tables/source columns):\n\n${docText.slice(0, 3000)}\n\nNow use the screenshot to fill in anything the text missed, especially chart data, source columns, or visual table content.`
+        : 'Look at the full document screenshot and identify every fill-in field or question.';
 
-Identify:
-1. The main question or prompt being asked
-2. A clear overall thesis or answer to the main prompt (1-2 sentences)
-3. Exactly how many sources are required and what real, credible sources to use (with actual URLs)
-4. Specific evidence points that support the thesis, numbered and spread across the sources
+      const raw = await callOpenAI({
+        system: `You are a student assistant analyzing a screenshot of a document assignment.
+
+Examine the ENTIRE image — every column, chart, table, graph, map, source box, and visual data area. Do NOT skip the left side, header rows, or any section that looks like reference/source material.
+
+Step 1 — Understand holistically:
+- What is the overall topic and assignment type (worksheet, OPVL, DBQ, chart analysis, math, etc.)?
+- Are there charts, maps, graphs, or primary sources shown? Read their content carefully.
+- Note any data values, labels, legends, or source attributions visible.
+
+Step 2 — Identify EVERY fill-in field in document order (top to bottom, left to right):
+- Questions with "?" expecting a written answer
+- Blank / labeled fields ("Name: ___", "Response:", "Answer:", "Write here")
+- Table cells with placeholder text ("Paste link here", "Your answer")
+- Structured prompts ("1 Value:", "1 Limitation:", "Significance:", "Solve:", etc.)
+- Any field clearly meant to be completed by the student
+- SKIP: headings, pure instructions, word banks, already-filled content
+
+Step 3 — Answer each field using the full visual context:
+- For chart/data questions: use the specific values, trends, and labels you can see
+- For source-based assignments: use details from the sources/documents shown in the image
+- Fill-in-the-blank: 1 concise answer or value
+- Short answer / response box: 2–4 sentences
+- Analysis / "explain" questions: 3–5 sentences with evidence from visible charts or sources
+- URL / link fields: provide a real, relevant URL
+
+Return ONLY valid JSON (no markdown fences):
+{ "items": [ { "question": "exact field label or question text", "answer": "your complete answer" } ] }
+Order items exactly as they appear in the document. If nothing to fill in, return { "items": [] }.`,
+        user: visionPrompt,
+        imageDataUrl: screenshotDataUrl,
+        json: true,
+        temperature: 0.3,
+      });
+
+      const parsed = extractJSON(raw);
+      const items  = parsed?.items;
+
+      if (!Array.isArray(items) || items.length === 0) {
+        setLoading(btn, false);
+        btn.textContent = 'No questions found';
+        btn.style.color = '#f59e0b';
+        setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
+        return;
+      }
+
+      const questions    = items.map(item => item.question || '');
+      const answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
+
+      await chrome.storage.local.set({
+        mc_questions:     questions,
+        mc_current_idx:   0,
+        mc_answers_cache: answersCache,
+        mc_doc_context:   docText.slice(0, 4000),
+        mc_plan:          {},
+      });
+
+      setLoading(btn, false);
+      $('mc-empty-state').classList.add('hidden');
+      $('mc-session').classList.remove('hidden');
+      renderMCQuestion(questions, 0);
+
+    } else {
+      // ── Text-only path (fallback when screenshot is unavailable) ─────────────
+      if (!docText) {
+        setLoading(btn, false);
+        flashError(btn, 'No text found in document. Make sure you\'re on a Google Doc or similar page.');
+        btn.textContent = 'No text found';
+        btn.style.color = '#ef4444';
+        const mcReloadHint = document.createElement('p');
+        mcReloadHint.textContent = 'Try reloading the tab';
+        mcReloadHint.style.cssText = 'color:#ef4444;font-size:11px;margin:4px 0 0;text-align:center;';
+        btn.parentElement.insertBefore(mcReloadHint, btn.nextSibling);
+        setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; mcReloadHint.remove(); }, 3000);
+        return;
+      }
+
+      // Step 1: Detect subject type and form a holistic plan
+      setLoading(btn, true, 'Analyzing assignment…');
+
+      const planRaw = await callOpenAI({
+        system: `You are a student assistant. Read this entire assignment and determine what type it is, then form an appropriate plan.
+
+First, detect the subject type:
+- MATH: equations, calculations, word problems, arithmetic, algebra, geometry, calculus, statistics
+- SCIENCE: chemistry, biology, physics, lab questions, formulas, scientific concepts
+- HISTORY/SOCIAL STUDIES: historical events, dates, people, timelines, analysis
+- ENGLISH/WRITING: essays, reading comprehension, literary analysis, writing prompts, discussion
+- RESEARCH/SOURCE-BASED: assignments requiring sources, citations, OPVL, evidence, bibliography
+- OTHER: any other subject or mixed content
+
+Then form a plan based on the type:
+- For MATH/SCIENCE: identify the topic/subject area and key formulas or methods that will be needed
+- For HISTORY/SOCIAL STUDIES: identify the main topic, key people, dates, and themes
+- For ENGLISH/WRITING: identify the main argument/thesis approach
+- For RESEARCH/SOURCE-BASED: identify required sources (with real URLs), thesis, and evidence
+- For OTHER: identify the main topic and approach
 
 Return ONLY valid JSON:
 {
-  "overall_thesis": "complete answer to the main prompt in 1-2 sentences",
+  "subject_type": "MATH | SCIENCE | HISTORY | ENGLISH | RESEARCH | OTHER",
+  "topic": "brief description of what this assignment is about",
+  "overall_thesis": "main answer or approach (1-2 sentences, or empty string if math/science)",
   "sources": [
-    { "number": 1, "url": "real URL", "name": "source name", "value": "1 specific value of this source", "limitation": "1 specific limitation of this source" }
+    { "number": 1, "url": "real URL", "name": "source name", "value": "1 value", "limitation": "1 limitation" }
   ],
-  "evidence": [
-    { "source_number": 1, "fact": "specific evidence from the source", "significance": "how this directly answers the main prompt" }
-  ]
+  "key_concepts": ["concept or formula 1", "concept 2"]
 }`,
-      user: docText.slice(0, 6000),
-      json: true,
-      temperature: 0.4,
-    });
+        user: docText.slice(0, 6000),
+        json: true,
+        temperature: 0.4,
+      });
 
-    const plan = extractJSON(planRaw) || {};
+      const plan = extractJSON(planRaw) || {};
+      const subjectType = plan.subject_type || 'OTHER';
+      const subjectLabel = { MATH: 'Math', SCIENCE: 'Science', HISTORY: 'History', ENGLISH: 'English', RESEARCH: 'Research', OTHER: '' }[subjectType] || '';
 
-    // Step 2: Fill every item using the plan as the single source of truth
-    setLoading(btn, true, 'Filling in answers…');
+      // Step 2: Fill every item using the plan
+      setLoading(btn, true, subjectLabel ? `${subjectLabel} assignment — filling in answers…` : 'Filling in answers…');
 
-    const raw = await callOpenAI({
-      system: `You are a student assistant. Using the provided plan, fill in ALL fields for this assignment. The plan has already decided the thesis, sources, and evidence — use it consistently for every field.
+      const raw = await callOpenAI({
+        system: `You are a student assistant. Using the provided plan, fill in ALL fields in this assignment. Subject type: ${subjectType}.
 
-Rules:
-- ALL fields for "Source #1" must use source number 1 from the plan (same URL, same name, same value/limitation)
-- ALL fields for "Source #2" must use source number 2 from the plan (same URL, same name, same value/limitation)
-- Evidence fields should draw from the plan's evidence list in order
-- For URL/link fields: use the exact URL from the plan
+ANSWER STYLE based on subject type:
+- MATH/SCIENCE: Show step-by-step work for calculations. For fill-in answers, give the solved value. For conceptual questions, explain clearly.
+- HISTORY/SOCIAL STUDIES: Use specific facts, dates, people, and events from the plan's topic.
+- ENGLISH/WRITING: Use the plan's thesis approach. Write in complete sentences with analysis.
+- RESEARCH/SOURCE-BASED: Use source URLs, names, values, and limitations exactly from the plan. Keep all source fields consistent.
+- OTHER: Answer naturally and appropriately for the context.
+
+General rules:
+- Fill-in-the-blank / single field: 1 answer or sentence; short answer: 2-3 sentences; analysis: 3-5 sentences
+- For URL fields: use real URLs from the plan if available, otherwise a real relevant URL
 - Write naturally, like a knowledgeable student
-- Fill-in-the-blank / single field: 1 sentence; short answer: 2-3 sentences; analysis: 3-5 sentences
+- For table assignments: label each item as "[Section] — [Prompt]" (e.g. "Source #1 — Paste link here")
 
 IDENTIFY fill-in items:
 - Questions with "?" expecting a written answer
-- Blank/labeled fields (e.g. "Name: ___", "Response:")
+- Blank/labeled fields (e.g. "Name: ___", "Response:", "Answer:")
 - Table cells with placeholder text ("Paste link here", "Write here", "Your answer here")
-- Structured prompts ("1 Value:", "1 Limitation:", "Significance:", "How does this help your question?", etc.)
-- Any field or cell clearly meant to be filled in by the student
-
-For table-based assignments: label each item as "[Section] — [Prompt]" (e.g. "Source #1 — Paste link here", "Source #1 OPVL — 1 Value").
+- Structured prompts ("1 Value:", "1 Limitation:", "Significance:", "Solve:", etc.)
+- Any field clearly meant to be filled in by the student
 
 SKIP: headings, pure instructions, word banks, already-filled content.
 
 Return ONLY valid JSON:
 { "items": [ { "question": "field label or prompt", "answer": "your answer" }, ... ] }
 Order items top to bottom, left to right. If nothing to fill in, return { "items": [] }.`,
-      user: `Plan (use this as the single source of truth for all answers):
+        user: `Plan (use this as the single source of truth for all answers):
 ${JSON.stringify(plan, null, 2)}
 
 Assignment document (identify all fields to fill in, then answer using the plan):
 ${docText.slice(0, 6000)}`,
-      json: true,
-      temperature: 0.3,
-    });
+        json: true,
+        temperature: 0.3,
+      });
 
-    const parsed = extractJSON(raw);
-    const items = parsed?.items;
+      const parsed = extractJSON(raw);
+      const items = parsed?.items;
 
-    if (!Array.isArray(items) || items.length === 0) {
+      if (!Array.isArray(items) || items.length === 0) {
+        setLoading(btn, false);
+        btn.textContent = 'No questions found';
+        btn.style.color = '#f59e0b';
+        setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
+        return;
+      }
+
+      const questions    = items.map(item => item.question || '');
+      const answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
+
+      // Save session state with all answers pre-loaded
+      await chrome.storage.local.set({
+        mc_questions:    questions,
+        mc_current_idx:  0,
+        mc_answers_cache: answersCache,
+        mc_doc_context:  docText.slice(0, 4000),
+        mc_plan:         plan,
+      });
+
       setLoading(btn, false);
-      btn.textContent = 'No questions found';
-      btn.style.color = '#f59e0b';
-      setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
-      return;
+      $('mc-empty-state').classList.add('hidden');
+      $('mc-session').classList.remove('hidden');
+      renderMCQuestion(questions, 0);
     }
-
-    const questions    = items.map(item => item.question || '');
-    const answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
-
-    // Save session state with all answers pre-loaded
-    await chrome.storage.local.set({
-      mc_questions:    questions,
-      mc_current_idx:  0,
-      mc_answers_cache: answersCache,
-      mc_doc_context:  docText.slice(0, 4000),
-      mc_plan:         plan,
-    });
-
-    setLoading(btn, false);
-    $('mc-empty-state').classList.add('hidden');
-    $('mc-session').classList.remove('hidden');
-    renderMCQuestion(questions, 0);
 
   } catch (err) {
     setLoading(btn, false);
@@ -2004,14 +2452,30 @@ async function generateAnswerForQuestion(questions, idx, { render = true, previo
         ? `\n- A previous attempt gave this answer: "${previousAnswer}" — you MUST use a completely different approach, angle, structure, and wording. Do not reuse any phrases or sentence structures from that answer.`
         : '';
       const raw = await callOpenAI({
-        system: `You are a helpful student assistant. Generate a single, well-written answer for the given assignment question or fill-in field.
+        system: `You are a student assistant that can solve all types of problems. First identify what type of problem this is, then answer it the right way.
 
-Guidelines:
-- Calibrate length to the question: fill-in-the-blank → 1 sentence; short answer → 2–3 sentences; analysis → 3–5 sentences
-- Sound like a knowledgeable student wrote it — natural, not robotic
-- If the field is part of a table (e.g. "Source #1 — Significance" or "OPVL — 1 Value"), use all the surrounding questions and document context to understand what source/topic is being analyzed and tailor the answer accordingly. All fields in the same table section relate to the same source or topic.
-- If the field expects a URL or link, provide a real, relevant URL
-- Only output the answer text itself — no labels, prefixes, or explanations${avoidNote}
+PROBLEM TYPE RULES:
+- MATH (arithmetic, algebra, geometry, calculus, statistics, word problems):
+  Show step-by-step work, then give the final answer clearly. Format: "Step 1: ... Step 2: ... Answer: ..."
+- SCIENCE (chemistry, physics, biology, formulas, calculations):
+  If it involves a formula, write the formula, plug in the values, and solve step by step. If conceptual, explain clearly.
+- HISTORY / SOCIAL STUDIES:
+  Answer with specific facts, dates, people, and events. Keep it focused and accurate.
+- ENGLISH / READING COMPREHENSION:
+  Answer with proper analysis. Reference the text or topic. Use complete, well-formed sentences.
+- FILL-IN-THE-BLANK / SHORT ANSWER:
+  Provide the precise expected answer — brief and accurate.
+- TABLE FIELDS (e.g. "Source #1 — Value", "OPVL — Limitation"):
+  Use the surrounding questions and document context to understand what's being asked. All fields in the same section relate to the same source/topic.
+- URL / LINK fields:
+  Provide a real, relevant URL.
+- ESSAY / ANALYSIS PROMPTS:
+  Write a well-structured paragraph response.
+
+General rules:
+- Calibrate length: fill-in-the-blank → 1 sentence or value; short answer → 2–3 sentences; analysis → 3–5 sentences; math → show all steps
+- Sound like a knowledgeable student — natural, not robotic
+- Only output the answer text itself — no labels, no prefixes${avoidNote}
 
 Return ONLY valid JSON: { "answer": "answer text here" }`,
         user: `Field to fill in: ${questions[idx]}
