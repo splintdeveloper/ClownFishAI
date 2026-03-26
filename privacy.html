@@ -46,7 +46,8 @@
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
       text-decoration: none;
       color: var(--text);
     }
@@ -116,14 +117,25 @@
       font-size: 0.85rem;
     }
 
-    .footer-logo { font-weight: 700; color: var(--text); }
+    .footer-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em; color: var(--text); }
     .footer-logo span { color: var(--orange); }
   </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html" class="nav-logo">🐠 Clown<span>Fish</span> AI</a>
+  <a href="index.html" class="nav-logo">
+    <svg viewBox="0 0 32 32" width="26" height="26">
+      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+    </svg>
+    ClownFish <span>AI</span>
+  </a>
 </nav>
 
 <div class="container">
@@ -188,7 +200,18 @@
 </div>
 
 <footer>
-  <div class="footer-logo">🐠 Clown<span>Fish</span> AI</div>
+  <div class="footer-logo">
+    <svg viewBox="0 0 32 32" width="22" height="22">
+      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+    </svg>
+    ClownFish <span>AI</span>
+  </div>
   <div>© 2025 ClownFish AI. All rights reserved.</div>
   <a href="index.html" style="color:var(--muted);text-decoration:none;">← Back to home</a>
 </footer>

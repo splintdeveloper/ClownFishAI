@@ -76,7 +76,8 @@
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
       text-decoration: none;
       color: var(--text);
     }
@@ -111,9 +112,15 @@
     /* ── HERO ── */
     .hero {
       text-align: center;
-      padding: 110px 5% 90px;
+      padding: 80px 5% 90px;
       position: relative;
       overflow: hidden;
+    }
+
+    .hero-logo {
+      display: block;
+      margin: 0 auto 28px;
+      filter: drop-shadow(0 0 28px rgba(255,255,255,0.12));
     }
     .hero::before {
       content: '';
@@ -681,7 +688,7 @@
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">
-    <svg viewBox="0 0 32 32" width="24" height="24">
+    <svg viewBox="0 0 32 32" width="26" height="26">
       <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
       <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
       <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
@@ -690,7 +697,7 @@
       <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
       <circle cx="5.5" cy="15" r="1.1" fill="white"/>
     </svg>
-    Clown<span>Fish</span> AI
+    ClownFish <span>AI</span>
   </a>
   <div class="nav-links">
     <a href="#features">Features</a>
@@ -701,10 +708,19 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="badge anim">Chrome Extension</div>
-  <h1 class="anim anim-d1">Six writing tools.<br /><span>One extension.</span></h1>
-  <p class="hero-sub anim anim-d2">AI writer, problem solver, rewriter, detector, auto typer, citations &amp; summarizer — all in one extension. No tab switching. No subscriptions.</p>
-  <div class="hero-btns anim anim-d3">
+  <svg class="hero-logo anim" viewBox="0 0 32 32" width="76" height="76" fill="none" stroke="rgba(255,255,255,0.78)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 16 L30 8 L30 24 Z"/>
+    <ellipse cx="12" cy="16" rx="11" ry="8.5"/>
+    <path d="M8 8.5 Q13 2 19 8.5 Z"/>
+    <path d="M10 21 Q6 26 10 24 Z"/>
+    <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5"/>
+    <circle cx="5.5" cy="15" r="2.5"/>
+    <circle cx="5.5" cy="15" r="0.9" fill="rgba(255,255,255,0.78)" stroke="none"/>
+  </svg>
+  <div class="badge anim anim-d1">Chrome Extension</div>
+  <h1 class="anim anim-d2">Six writing tools.<br /><span>One extension.</span></h1>
+  <p class="hero-sub anim anim-d3">AI writer, problem solver, rewriter, detector, auto typer, citations &amp; summarizer — all in one extension. No tab switching. No subscriptions.</p>
+  <div class="hero-btns anim anim-d4">
     <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank">
       <svg class="chrome-icon" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="4" fill="#000"/>
