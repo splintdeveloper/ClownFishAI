@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to ClownFish AI — Payment Confirmed</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #f97316;
+      --orange-light: #fb923c;
+      --orange-dim: rgba(249,115,22,0.12);
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.07);
+      --text: #f5f5f5;
+      --muted: #888;
+      --green: #22c55e;
+      --green-dim: rgba(34,197,94,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 64px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-logo span { color: var(--orange); }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* radial glow behind card */
+    main::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, rgba(249,115,22,0.06) 40%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── CARD ── */
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 52px 44px 44px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      animation: cardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
+    /* green top accent line */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 10%; right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      border-radius: 2px;
+    }
+
+    /* ── CHECK ICON ── */
+    .check-wrap {
+      width: 72px;
+      height: 72px;
+      background: var(--green-dim);
+      border: 1.5px solid rgba(34,197,94,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      animation: popIn 0.5s 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.4); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .check-wrap svg { width: 34px; height: 34px; }
+
+    /* ── HEADLINE ── */
+    .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 2.1rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    h1 span { color: var(--orange); }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 380px;
+      margin: 0 auto 32px;
+      line-height: 1.65;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 0 28px;
+    }
+
+    /* ── STEPS ── */
+    .steps-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+      margin-bottom: 32px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      background: var(--orange-dim);
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--orange);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .step-text strong { color: var(--orange); font-weight: 700; }
+
+    /* ── CLOSE BTN ── */
+    .close-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--orange);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 13px 28px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .close-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+
+    .back-link {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* ── FEATURES UNLOCKED ── */
+    .features-unlocked {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+
+    .feat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .feat-pill-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .footer-logo span { color: var(--orange); }
+
+    /* ── CONFETTI CANVAS ── */
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 36px 22px 32px; }
+      .features-unlocked { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <svg viewBox="0 0 32 32" width="24" height="24">
+      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+    </svg>
+    Clown<span>Fish</span> AI
+  </a>
+</nav>
+
+<!-- MAIN -->
+<main>
+  <div class="card">
+
+    <!-- Check icon -->
+    <div class="check-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+
+    <div class="eyebrow">Payment Confirmed</div>
+    <h1>You're in. Welcome to<br/><span>ClownFish AI.</span></h1>
+    <p class="subtitle">Your one-time payment was successful. You now have lifetime access to every tool in the extension — no subscriptions, ever.</p>
+
+    <!-- Features unlocked -->
+    <div class="features-unlocked">
+      <div class="feat-pill"><span class="feat-pill-dot"></span>Problem Solver</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>AI Writer</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>AI Checker</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>Rewriter</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>Auto Typer</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>Citations</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>Learn Tool</div>
+      <div class="feat-pill"><span class="feat-pill-dot"></span>Fact Check</div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Next steps -->
+    <div class="steps-label">Next steps</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Close this tab and go back to the page you were on.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Click the <strong>ClownFish</strong> icon in your Chrome toolbar.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">All tools are now unlocked — enjoy lifetime access!</div>
+      </div>
+    </div>
+
+    <button class="close-btn" onclick="window.close()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Close this tab
+    </button>
+    <a href="index.html" class="back-link">← Back to ClownFish AI</a>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <a href="index.html" class="footer-logo">
+    <svg viewBox="0 0 32 32" width="18" height="18">
+      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
+      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
+      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
+      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
+      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
+      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
+      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
+    </svg>
+    Clown<span>Fish</span> AI
+  </a>
+  <div>© 2026 ClownFish AI · All rights reserved.</div>
+  <a href="mailto:splintapp@gmail.com" style="color:var(--muted);text-decoration:none;">Support</a>
+</footer>
+
+<script>
+  /* ── Confetti ── */
+  (function () {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+    const COLORS = ['#f97316','#fb923c','#22c55e','#facc15','#818cf8','#f472b6'];
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function spawn() {
+      for (let i = 0; i < 130; i++) {
+        particles.push({
+          x: rand(0, W),
+          y: rand(-H * 0.3, 0),
+          r: rand(4, 9),
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          vx: rand(-2, 2),
+          vy: rand(2.5, 5.5),
+          spin: rand(-0.12, 0.12),
+          angle: rand(0, Math.PI * 2),
+          shape: Math.random() > 0.5 ? 'rect' : 'circle',
+          w: rand(6, 13),
+          h: rand(4, 8),
+          opacity: 1,
+        });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.opacity;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillStyle = p.color;
+        if (p.shape === 'circle') {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        }
+        ctx.restore();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.angle += p.spin;
+        p.vy += 0.08; // gravity
+        if (p.y > H + 20) p.opacity -= 0.04;
+      });
+      particles = particles.filter(p => p.opacity > 0);
+      if (particles.length > 0) requestAnimationFrame(draw);
+      else ctx.clearRect(0, 0, W, H);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Small delay so the card animation finishes first
+    setTimeout(() => { spawn(); draw(); }, 400);
+  })();
+</script>
+
+</body>
+</html>
