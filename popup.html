@@ -260,7 +260,7 @@
           <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
         </svg>
       </button>
-      <button class="tqn-btn" data-tab="aiSummarize" title="Summarize">
+      <button class="tqn-btn" data-tab="aiSummarize" title="Learn">
         <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
           <line x1="3" y1="6" x2="21" y2="6"/>
           <line x1="3" y1="10" x2="21" y2="10"/>
@@ -642,30 +642,55 @@
 
       <!-- Mode switcher -->
       <div class="tool-mode-switcher">
-        <button class="tool-mode-btn active" data-mode="summarize" data-panel="summarize">Summarize</button>
-        <button class="tool-mode-btn" data-mode="explain" data-panel="summarize">Explain</button>
+        <button class="tool-mode-btn active" data-mode="flashcards" data-panel="learn">Flashcards</button>
+        <button class="tool-mode-btn" data-mode="summarize" data-panel="learn">Summarize</button>
+        <button class="tool-mode-btn" data-mode="explain" data-panel="learn">Explain</button>
+        <button class="tool-mode-btn" data-mode="quiz" data-panel="learn">Quiz</button>
+      </div>
+
+      <!-- FLASHCARDS section -->
+      <div class="tool-mode-section" id="learn-flashcards-section">
+        <div class="row space">
+          <span class="text-muted" style="font-size:11px">Paste text or load from page</span>
+          <div class="row gap-2">
+            <button class="btn ghost sm" id="flashcard-fromdoc-btn">From Doc</button>
+            <button class="btn ghost sm" id="flashcard-clear-btn">Clear</button>
+          </div>
+        </div>
+        <textarea id="flashcard-input" placeholder="Paste notes, a chapter, or any content to generate flashcards from..." rows="4"></textarea>
+        <button class="btn primary full" id="flashcard-btn">Create Flashcards</button>
+        <div class="hidden" id="flashcard-deck">
+          <div class="fc-header">
+            <span class="fc-counter" id="fc-counter">Card 1 of 10</span>
+            <span class="fc-hint">Click card to flip</span>
+          </div>
+          <div class="flashcard" id="flashcard">
+            <div class="flashcard-inner" id="flashcard-inner">
+              <div class="flashcard-front" id="fc-front"></div>
+              <div class="flashcard-back" id="fc-back"></div>
+            </div>
+          </div>
+          <div class="row gap-2" style="margin-top:8px">
+            <button class="btn ghost sm" id="fc-prev-btn" style="flex:1">← Prev</button>
+            <button class="btn ghost sm" id="fc-next-btn" style="flex:1">Next →</button>
+          </div>
+        </div>
       </div>
 
       <!-- SUMMARIZE section -->
-      <div class="tool-mode-section" id="summarize-summarize-section">
+      <div class="tool-mode-section hidden" id="learn-summarize-section">
         <div class="row space">
-          <span class="text-muted" style="font-size:11px">Paste text or load from page to summarize</span>
+          <span class="text-muted" style="font-size:11px">Get bullet-point key points</span>
           <div class="row gap-2">
             <button class="btn ghost sm" id="summarize-fromdoc-btn">From Doc</button>
             <button class="btn ghost sm" id="summarize-clear-btn">Clear</button>
           </div>
         </div>
-        <textarea id="summarize-input" placeholder="Paste text you want summarized — an assignment, article, essay, or anything you just wrote..." rows="5"></textarea>
-        <select id="summarize-length" class="cite-style-select" style="width:100%;margin-bottom:8px">
-          <option value="one">1 sentence</option>
-          <option value="short" selected>Brief (2–3 sentences)</option>
-          <option value="medium">Standard (1 paragraph)</option>
-          <option value="detailed">Detailed (key points list)</option>
-        </select>
+        <textarea id="summarize-input" placeholder="Paste text to break down into clear bullet points..." rows="5"></textarea>
         <button class="btn primary full" id="summarize-btn">Summarize</button>
         <div class="hidden" id="summarize-output-wrap">
           <div class="output-header" style="margin-top:10px">
-            <span>Summary</span>
+            <span>Key Points</span>
             <div class="row gap-2">
               <button class="btn ghost sm" id="summarize-copy-btn">Copy</button>
               <button class="btn ghost sm" id="summarize-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
@@ -676,15 +701,15 @@
       </div>
 
       <!-- EXPLAIN section -->
-      <div class="tool-mode-section hidden" id="summarize-explain-section">
+      <div class="tool-mode-section hidden" id="learn-explain-section">
         <div class="row space">
-          <span class="text-muted" style="font-size:11px">Paste anything confusing for a plain-English breakdown</span>
+          <span class="text-muted" style="font-size:11px">Get a plain-English breakdown</span>
           <div class="row gap-2">
             <button class="btn ghost sm" id="explain-fromdoc-btn">From Doc</button>
             <button class="btn ghost sm" id="explain-clear-btn">Clear</button>
           </div>
         </div>
-        <textarea id="explain-input" placeholder="Paste a confusing assignment, reading, concept, question, or passage — get a plain-English explanation..." rows="5"></textarea>
+        <textarea id="explain-input" placeholder="Paste any concept, problem, assignment, or confusing passage..." rows="5"></textarea>
         <select id="explain-level" class="cite-style-select" style="width:100%;margin-bottom:8px">
           <option value="simple">Simple (5th grade level)</option>
           <option value="student" selected>Student-friendly</option>
@@ -700,6 +725,47 @@
             </div>
           </div>
           <textarea id="explain-output" rows="5" readonly style="margin-top:6px"></textarea>
+        </div>
+      </div>
+
+      <!-- QUIZ section -->
+      <div class="tool-mode-section hidden" id="learn-quiz-section">
+        <div id="quiz-input-wrap">
+          <div class="row space">
+            <span class="text-muted" style="font-size:11px">Paste text or load from page</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="quiz-fromdoc-btn">From Doc</button>
+              <button class="btn ghost sm" id="quiz-clear-btn">Clear</button>
+            </div>
+          </div>
+          <textarea id="quiz-input" placeholder="Paste notes, a chapter, or any topic to quiz yourself on..." rows="4"></textarea>
+          <select id="quiz-difficulty" class="cite-style-select" style="width:100%;margin-bottom:8px">
+            <option value="easy">Easy — basic recall</option>
+            <option value="medium" selected>Medium — understanding</option>
+            <option value="hard">Hard — analysis &amp; application</option>
+          </select>
+          <button class="btn primary full" id="quiz-btn">Generate Quiz</button>
+        </div>
+        <div class="hidden" id="quiz-session">
+          <div class="row space" style="margin-bottom:5px;align-items:center">
+            <span class="mc-q-counter" id="quiz-counter">Question 1 of 10</span>
+            <button class="btn ghost sm" id="quiz-new-btn">New Quiz</button>
+          </div>
+          <div class="progress-track" style="margin-bottom:10px">
+            <div class="progress-fill" id="quiz-progress-fill" style="width:0%"></div>
+          </div>
+          <div class="mc-question-box" id="quiz-question"></div>
+          <div id="quiz-choices"></div>
+          <div class="hidden quiz-feedback" id="quiz-feedback"></div>
+          <button class="btn primary full hidden" id="quiz-next-btn" style="margin-top:8px">Next →</button>
+        </div>
+        <div class="hidden" id="quiz-complete">
+          <div class="quiz-score-box">
+            <div class="quiz-score-emoji" id="quiz-score-emoji">🎉</div>
+            <div class="quiz-score-text" id="quiz-score-text"></div>
+            <div class="quiz-score-sub" id="quiz-score-sub"></div>
+            <button class="btn primary full" id="quiz-retry-btn" style="margin-top:12px">Try Again</button>
+          </div>
         </div>
       </div>
 

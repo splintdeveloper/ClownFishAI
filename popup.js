@@ -191,7 +191,7 @@ const PANEL_NAMES = {
   aiRewriter:   'Rewriter',
   aiSearch:     'Problem Solver',
   aiCite:       'Citations',
-  aiSummarize:  'Summarize',
+  aiSummarize:  'Learn',
 };
 
 function openPanel(tabId) {
@@ -231,17 +231,19 @@ function switchSolverMode(mode) {
   $('solver-lab-section').classList.toggle('hidden', mode !== 'lab');
 }
 
-// ─── Summarize / Explain Mode Switcher ────────────────────────────────────────
-function switchSummarizeMode(mode) {
+// ─── Learn Mode Switcher ───────────────────────────────────────────────────────
+function switchLearnMode(mode) {
   document.querySelectorAll('#panel-aiSummarize .tool-mode-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.mode === mode);
   });
-  $('summarize-summarize-section').classList.toggle('hidden', mode !== 'summarize');
-  $('summarize-explain-section').classList.toggle('hidden', mode !== 'explain');
+  $('learn-flashcards-section').classList.toggle('hidden', mode !== 'flashcards');
+  $('learn-summarize-section').classList.toggle('hidden',  mode !== 'summarize');
+  $('learn-explain-section').classList.toggle('hidden',    mode !== 'explain');
+  $('learn-quiz-section').classList.toggle('hidden',       mode !== 'quiz');
 }
 
 document.querySelectorAll('#panel-aiSummarize .tool-mode-btn').forEach(btn => {
-  btn.addEventListener('click', () => switchSummarizeMode(btn.dataset.mode));
+  btn.addEventListener('click', () => switchLearnMode(btn.dataset.mode));
 });
 
 document.querySelectorAll('#panel-aiChecker .tool-mode-btn').forEach(btn => {
@@ -859,6 +861,14 @@ $('explain-clear-btn').addEventListener('click', () => {
   $('explain-output-wrap').classList.add('hidden');
   chrome.storage.local.remove('saved_explain');
 });
+$('flashcard-clear-btn').addEventListener('click', () => {
+  $('flashcard-input').value = '';
+  $('flashcard-deck').classList.add('hidden');
+  learnFlashcards = []; learnCardIdx = 0;
+});
+$('quiz-clear-btn').addEventListener('click', () => {
+  $('quiz-input').value = '';
+});
 $('lab-clear-btn').addEventListener('click', () => {
   $('lab-input').value = '';
   $('lab-output-wrap').classList.add('hidden');
@@ -887,12 +897,22 @@ $('clear-all-btn').addEventListener('click', () => {
   $('facts-text').value = '';
   $('facts-results').classList.add('hidden');
   lastFactResults = null;
-  // Summarize
+  // Learn — Summarize
   $('summarize-input').value = '';
   $('summarize-output-wrap').classList.add('hidden');
-  // Explain
+  // Learn — Explain
   $('explain-input').value = '';
   $('explain-output-wrap').classList.add('hidden');
+  // Learn — Flashcards
+  $('flashcard-input').value = '';
+  $('flashcard-deck').classList.add('hidden');
+  learnFlashcards = []; learnCardIdx = 0;
+  // Learn — Quiz
+  $('quiz-input').value = '';
+  $('quiz-session').classList.add('hidden');
+  $('quiz-complete').classList.add('hidden');
+  $('quiz-input-wrap').classList.remove('hidden');
+  learnQuizQuestions = []; learnQuizIdx = 0; learnQuizScore = 0;
   // Lab Report
   $('lab-input').value = '';
   $('lab-output-wrap').classList.add('hidden');
@@ -915,9 +935,11 @@ $('rewriter-fromdoc-btn').addEventListener('click', (e) => loadFromDoc(e.current
 $('writer-fromdoc-btn').addEventListener('click',   (e) => loadFromDoc(e.currentTarget, 'writer-input'));
 $('cite-fromdoc-btn').addEventListener('click',     (e) => loadFromDoc(e.currentTarget, 'cite-text'));
 $('facts-fromdoc-btn').addEventListener('click',    (e) => loadFromDoc(e.currentTarget, 'facts-text'));
-$('summarize-fromdoc-btn').addEventListener('click',(e) => loadFromDoc(e.currentTarget, 'summarize-input'));
-$('explain-fromdoc-btn').addEventListener('click',  (e) => loadFromDoc(e.currentTarget, 'explain-input'));
-$('lab-fromdoc-btn').addEventListener('click',      (e) => loadFromDoc(e.currentTarget, 'lab-input'));
+$('summarize-fromdoc-btn').addEventListener('click', (e) => loadFromDoc(e.currentTarget, 'summarize-input'));
+$('explain-fromdoc-btn').addEventListener('click',   (e) => loadFromDoc(e.currentTarget, 'explain-input'));
+$('flashcard-fromdoc-btn').addEventListener('click', (e) => loadFromDoc(e.currentTarget, 'flashcard-input'));
+$('quiz-fromdoc-btn').addEventListener('click',      (e) => loadFromDoc(e.currentTarget, 'quiz-input'));
+$('lab-fromdoc-btn').addEventListener('click',       (e) => loadFromDoc(e.currentTarget, 'lab-input'));
 
 // ─── AI CHECKER ───────────────────────────────────────────────────────────────
 let lastCheckerResult = null;
@@ -1928,54 +1950,20 @@ $('summarize-btn').addEventListener('click', async () => {
   const text = $('summarize-input').value.trim();
   if (!text) { flashError($('summarize-input'), 'Enter text to summarize.'); return; }
 
-  const lengthMode = $('summarize-length').value;
   const btn = $('summarize-btn');
   setLoading(btn, true, 'Summarizing…');
   $('summarize-output-wrap').classList.add('hidden');
 
-  const lengthGuide = {
-    one:      'After the label line, write exactly 1 sentence that captures the single most important thing to know.',
-    short:    'Keep your response concise — 2–3 sentences after the label line.',
-    medium:   'Write a solid paragraph after the label line.',
-    detailed: 'After the label line, use a short paragraph followed by a bullet list of key points.',
-  }[lengthMode];
-
   try {
     const result = await callOpenAI({
-      system: `You are a summarization assistant. Your job is to first identify what type of content the user has given you, then summarize it in a way that is most useful for understanding it quickly.
-
-STEP 1 — Identify the content type. Choose the single best match:
-- ASSIGNMENT: instructions, prompts, rubrics, or anything telling someone what they need to do or produce (essays, projects, lab reports, worksheets, discussion posts, etc.)
-- ESSAY / ARTICLE: a written body of text that argues, explains, or informs (student essays, news articles, blog posts, research summaries, etc.)
-- OTHER: anything else (emails, stories, notes, code, etc.)
-
-STEP 2 — Output format based on type:
-
-If ASSIGNMENT:
-Start with exactly: "This is an assignment."
-Then summarize:
-- What the assignment is asking you to do
-- What topics or content you need to cover
-- How to approach or structure it (e.g. write a 5-paragraph essay, answer each question, perform an experiment)
-
-If ESSAY / ARTICLE:
-Start with exactly: "This is an essay." or "This is an article." (pick whichever fits better)
-Then summarize:
-- What the piece is about and its main argument or point
-- The key ideas or evidence it covers
-
-If OTHER:
-Start with a one-line label describing what it is (e.g. "This is an email." / "This is a set of notes.")
-Then give a plain summary of what it contains.
-
-LENGTH GUIDE:
-${lengthGuide}
+      system: `You are a summarization assistant. Break the given content into clear, simple bullet points covering the key ideas.
 
 Rules:
-- Always start with the label line ("This is a/an ___.")
-- Stay accurate — do not add information not present in the text
-- Use plain, clear language — write as if explaining to a student
-- Do not say "Here is a summary:" or add any other preamble beyond the label`,
+- Output ONLY bullet points — no intro sentence, no preamble, no heading
+- Each bullet should be one concise idea (1–2 sentences max)
+- Aim for 5–10 bullets depending on content length
+- Use plain language a student can understand
+- Stay accurate — do not add information not in the text`,
       user: text,
       temperature: 0.3,
     });
@@ -1983,15 +1971,9 @@ Rules:
     $('summarize-output').value = result.trim();
     $('summarize-output-wrap').classList.remove('hidden');
   } catch (e) {
-    if (e.message === 'NO_API_KEY') {
-      $('api-warning').classList.remove('hidden');
-      alert('Set your API key in Settings first.');
-    } else {
-      alert(`Summarize failed: ${e.message}`);
-    }
-  } finally {
-    setLoading(btn, false);
-  }
+    if (e.message === 'NO_API_KEY') { $('api-warning').classList.remove('hidden'); alert('Set your API key in Settings first.'); }
+    else { alert(`Summarize failed: ${e.message}`); }
+  } finally { setLoading(btn, false); }
 });
 
 $('summarize-copy-btn').addEventListener('click', () => {
@@ -2059,6 +2041,212 @@ $('explain-copy-btn').addEventListener('click', () => {
 
 $('explain-autotype-btn').addEventListener('click', () => {
   sendToAutoTyper($('explain-output').value);
+});
+
+// ─── FLASHCARDS ────────────────────────────────────────────────────────────────
+let learnFlashcards = [];
+let learnCardIdx    = 0;
+
+function renderFlashcard() {
+  const card = learnFlashcards[learnCardIdx];
+  if (!card) return;
+  $('fc-counter').textContent = `Card ${learnCardIdx + 1} of ${learnFlashcards.length}`;
+  $('fc-front').textContent = card.front;
+  $('fc-back').textContent  = card.back;
+  $('flashcard-inner').classList.remove('flipped');
+  $('fc-prev-btn').disabled = learnCardIdx === 0;
+  $('fc-next-btn').disabled = learnCardIdx === learnFlashcards.length - 1;
+}
+
+$('flashcard').addEventListener('click', () => {
+  $('flashcard-inner').classList.toggle('flipped');
+});
+
+$('fc-prev-btn').addEventListener('click', () => {
+  if (learnCardIdx > 0) { learnCardIdx--; renderFlashcard(); }
+});
+$('fc-next-btn').addEventListener('click', () => {
+  if (learnCardIdx < learnFlashcards.length - 1) { learnCardIdx++; renderFlashcard(); }
+});
+
+$('flashcard-btn').addEventListener('click', async () => {
+  const text = $('flashcard-input').value.trim();
+  if (!text) { flashError($('flashcard-input'), 'Paste some content first.'); return; }
+
+  const btn = $('flashcard-btn');
+  setLoading(btn, true, 'Creating flashcards…');
+  $('flashcard-deck').classList.add('hidden');
+
+  try {
+    const raw = await callOpenAI({
+      system: `You are a flashcard creator. Generate 10–15 flashcards from the given content.
+
+Each flashcard has:
+- "front": the term, concept, or question (keep it short — 1 line)
+- "back": the definition, answer, or explanation (1–3 sentences, clear and student-friendly)
+
+Return ONLY valid JSON, no markdown fences:
+{ "cards": [ { "front": "...", "back": "..." }, ... ] }
+
+Rules:
+- Cover the most important concepts, terms, and facts
+- Keep fronts concise — they should be a single clear question or term
+- Keep backs clear and educational, not just a copy of the source text
+- If content is math/science, include formulas or steps on the back`,
+      user: text,
+      json: true,
+      temperature: 0.4,
+    });
+
+    const parsed = extractJSON(raw);
+    const cards = parsed?.cards;
+    if (!Array.isArray(cards) || cards.length === 0) throw new Error('No cards returned');
+
+    learnFlashcards = cards;
+    learnCardIdx    = 0;
+    renderFlashcard();
+    $('flashcard-deck').classList.remove('hidden');
+  } catch (e) {
+    if (e.message === 'NO_API_KEY') { alert('Set your API key in Settings first.'); }
+    else { alert(`Flashcards failed: ${e.message}`); }
+  } finally { setLoading(btn, false); }
+});
+
+// ─── QUIZ ──────────────────────────────────────────────────────────────────────
+let learnQuizQuestions = [];
+let learnQuizIdx       = 0;
+let learnQuizScore     = 0;
+
+function renderQuizQuestion() {
+  const q = learnQuizQuestions[learnQuizIdx];
+  if (!q) return;
+
+  const total = learnQuizQuestions.length;
+  $('quiz-counter').textContent = `Question ${learnQuizIdx + 1} of ${total}`;
+  $('quiz-progress-fill').style.width = `${Math.round((learnQuizIdx / total) * 100)}%`;
+  $('quiz-question').textContent = q.question;
+  $('quiz-feedback').classList.add('hidden');
+  $('quiz-next-btn').classList.add('hidden');
+
+  const choicesEl = $('quiz-choices');
+  choicesEl.innerHTML = '';
+  q.choices.forEach((choice, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-choice-btn';
+    btn.textContent = `${['A','B','C','D'][i]}. ${choice}`;
+    btn.addEventListener('click', () => handleQuizAnswer(i));
+    choicesEl.appendChild(btn);
+  });
+}
+
+function handleQuizAnswer(chosenIdx) {
+  const q = learnQuizQuestions[learnQuizIdx];
+  const correct = chosenIdx === q.answer;
+  if (correct) learnQuizScore++;
+
+  // Colour choices
+  document.querySelectorAll('.quiz-choice-btn').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.answer) btn.classList.add('quiz-correct');
+    else if (i === chosenIdx && !correct) btn.classList.add('quiz-wrong');
+  });
+
+  const fb = $('quiz-feedback');
+  fb.textContent = correct ? '✓ Correct!' : `✗ Correct answer: ${['A','B','C','D'][q.answer]}. ${q.choices[q.answer]}`;
+  fb.className = 'quiz-feedback ' + (correct ? 'quiz-fb-correct' : 'quiz-fb-wrong');
+  fb.classList.remove('hidden');
+
+  if (learnQuizIdx < learnQuizQuestions.length - 1) {
+    $('quiz-next-btn').classList.remove('hidden');
+  } else {
+    // Quiz complete
+    setTimeout(() => showQuizComplete(), 900);
+  }
+}
+
+function showQuizComplete() {
+  $('quiz-session').classList.add('hidden');
+  const total = learnQuizQuestions.length;
+  const pct   = Math.round((learnQuizScore / total) * 100);
+  const emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '📚';
+  $('quiz-score-emoji').textContent = emoji;
+  $('quiz-score-text').textContent  = `${learnQuizScore} / ${total} correct`;
+  $('quiz-score-sub').textContent   = pct >= 90 ? 'Excellent!' : pct >= 70 ? 'Great job!' : pct >= 50 ? 'Keep practicing!' : 'Give it another try!';
+  $('quiz-complete').classList.remove('hidden');
+}
+
+$('quiz-next-btn').addEventListener('click', () => {
+  learnQuizIdx++;
+  renderQuizQuestion();
+});
+
+$('quiz-new-btn').addEventListener('click', () => {
+  $('quiz-session').classList.add('hidden');
+  $('quiz-complete').classList.add('hidden');
+  $('quiz-input-wrap').classList.remove('hidden');
+  learnQuizQuestions = []; learnQuizIdx = 0; learnQuizScore = 0;
+});
+
+$('quiz-retry-btn').addEventListener('click', () => {
+  learnQuizIdx = 0; learnQuizScore = 0;
+  $('quiz-complete').classList.add('hidden');
+  $('quiz-session').classList.remove('hidden');
+  renderQuizQuestion();
+});
+
+$('quiz-btn').addEventListener('click', async () => {
+  const text = $('quiz-input').value.trim();
+  if (!text) { flashError($('quiz-input'), 'Paste some content first.'); return; }
+
+  const difficulty = $('quiz-difficulty').value;
+  const btn = $('quiz-btn');
+  setLoading(btn, true, 'Generating quiz…');
+
+  const diffGuide = {
+    easy:   'Basic recall questions — ask about definitions, names, dates, and simple facts directly stated in the text.',
+    medium: 'Understanding questions — ask students to explain concepts, identify cause/effect, or describe how/why something works.',
+    hard:   'Analysis and application questions — ask students to compare, evaluate, apply concepts to new situations, or synthesize ideas.',
+  }[difficulty];
+
+  try {
+    const raw = await callOpenAI({
+      system: `You are a quiz generator. Create exactly 10 multiple-choice questions from the given content.
+
+Difficulty: ${difficulty.toUpperCase()}
+${diffGuide}
+
+Each question has:
+- "question": the question text
+- "choices": array of exactly 4 answer options (strings, no A/B/C/D prefix)
+- "answer": index (0–3) of the correct choice
+
+Return ONLY valid JSON, no markdown fences:
+{ "questions": [ { "question": "...", "choices": ["...", "...", "...", "..."], "answer": 0 }, ... ] }
+
+Rules:
+- All 4 choices must be plausible — no obviously silly distractors
+- Only one choice is correct
+- Questions must be clearly answerable from the given content
+- Vary question types (who/what/why/how)`,
+      user: text,
+      json: true,
+      temperature: 0.5,
+    });
+
+    const parsed = extractJSON(raw);
+    const questions = parsed?.questions;
+    if (!Array.isArray(questions) || questions.length === 0) throw new Error('No questions returned');
+
+    learnQuizQuestions = questions.slice(0, 10);
+    learnQuizIdx = 0; learnQuizScore = 0;
+    $('quiz-input-wrap').classList.add('hidden');
+    $('quiz-complete').classList.add('hidden');
+    $('quiz-session').classList.remove('hidden');
+    renderQuizQuestion();
+  } catch (e) {
+    if (e.message === 'NO_API_KEY') { alert('Set your API key in Settings first.'); }
+    else { alert(`Quiz failed: ${e.message}`); }
+  } finally { setLoading(btn, false); }
 });
 
 // ─── LAB REPORT ───────────────────────────────────────────────────────────────
