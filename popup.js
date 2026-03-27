@@ -69,7 +69,7 @@ async function callOpenAI({ system, user, json = false, temperature = 0.3, image
   if (imageDataUrl) {
     model = provider === 'openai'
       ? (model.startsWith('gpt-4') ? model : 'gpt-4o-mini')
-      : 'llama-3.2-11b-vision-preview';
+      : 'meta-llama/llama-4-scout-17b-16e-instruct';
   }
 
   // Format user message: multimodal array when image present, plain string otherwise
@@ -2199,19 +2199,20 @@ $('mc-load-btn').addEventListener('click', async () => {
       return;
     }
 
+    // ── Vision path: try screenshot first, fall back to text-only if it fails ──
+    let questions = null;
+    let answersCache = null;
+    let planForStorage = {};
+
     if (hasScreenshot) {
-      // ── Vision path: analyze full screenshot so charts, tables, and source
-      //    columns are never missed — then answer everything holistically ───────
-      setLoading(btn, true, 'Analyzing document…');
+      try {
+        setLoading(btn, true, 'Analyzing document…');
+        const visionPrompt = docText
+          ? `Below is text extracted from this document (may be incomplete for charts/tables/source columns):\n\n${docText.slice(0, 3000)}\n\nNow use the screenshot to fill in anything the text missed, especially chart data, source columns, or visual table content.`
+          : 'Look at the full document screenshot and identify every fill-in field or question.';
 
-      // Include any extracted text as supplemental context (helps with dense
-      // text that might be hard to OCR from the screenshot alone)
-      const visionPrompt = docText
-        ? `Below is text extracted from this document (may be incomplete for charts/tables/source columns):\n\n${docText.slice(0, 3000)}\n\nNow use the screenshot to fill in anything the text missed, especially chart data, source columns, or visual table content.`
-        : 'Look at the full document screenshot and identify every fill-in field or question.';
-
-      const raw = await callOpenAI({
-        system: `You are a student assistant analyzing a screenshot of a document assignment.
+        const raw = await callOpenAI({
+          system: `You are a student assistant analyzing a screenshot of a document assignment.
 
 Examine the ENTIRE image — every column, chart, table, graph, map, source box, and visual data area. Do NOT skip the left side, header rows, or any section that looks like reference/source material.
 
@@ -2239,44 +2240,26 @@ Step 3 — Answer each field using the full visual context:
 Return ONLY valid JSON (no markdown fences):
 { "items": [ { "question": "exact field label or question text", "answer": "your complete answer" } ] }
 Order items exactly as they appear in the document. If nothing to fill in, return { "items": [] }.`,
-        user: visionPrompt,
-        imageDataUrl: screenshotDataUrl,
-        json: true,
-        temperature: 0.3,
-      });
+          user: visionPrompt,
+          imageDataUrl: screenshotDataUrl,
+          json: true,
+          temperature: 0.3,
+        });
 
-      const parsed = extractJSON(raw);
-      const items  = parsed?.items;
-
-      if (!Array.isArray(items) || items.length === 0) {
-        setLoading(btn, false);
-        btn.textContent = 'No questions found';
-        btn.style.color = '#f59e0b';
-        setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
-        return;
+        const items = extractJSON(raw)?.items;
+        if (Array.isArray(items) && items.length > 0) {
+          questions    = items.map(item => item.question || '');
+          answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
+        }
+      } catch (visionErr) {
+        // Vision model unavailable — fall through to text-only path
       }
+    }
 
-      const questions    = items.map(item => item.question || '');
-      const answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
-
-      await chrome.storage.local.set({
-        mc_questions:     questions,
-        mc_current_idx:   0,
-        mc_answers_cache: answersCache,
-        mc_doc_context:   docText.slice(0, 4000),
-        mc_plan:          {},
-      });
-
-      setLoading(btn, false);
-      $('mc-empty-state').classList.add('hidden');
-      $('mc-session').classList.remove('hidden');
-      renderMCQuestion(questions, 0);
-
-    } else {
-      // ── Text-only path (fallback when screenshot is unavailable) ─────────────
+    // ── Text-only path: runs if no screenshot, vision failed, or vision found nothing ──
+    if (!questions) {
       if (!docText) {
         setLoading(btn, false);
-        flashError(btn, 'No text found in document. Make sure you\'re on a Google Doc or similar page.');
         btn.textContent = 'No text found';
         btn.style.color = '#ef4444';
         const mcReloadHint = document.createElement('p');
@@ -2324,6 +2307,7 @@ Return ONLY valid JSON:
       });
 
       const plan = extractJSON(planRaw) || {};
+      planForStorage = plan;
       const subjectType = plan.subject_type || 'OTHER';
       const subjectLabel = { MATH: 'Math', SCIENCE: 'Science', HISTORY: 'History', ENGLISH: 'English', RESEARCH: 'Research', OTHER: '' }[subjectType] || '';
 
@@ -2378,23 +2362,30 @@ ${docText.slice(0, 6000)}`,
         return;
       }
 
-      const questions    = items.map(item => item.question || '');
-      const answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
-
-      // Save session state with all answers pre-loaded
-      await chrome.storage.local.set({
-        mc_questions:    questions,
-        mc_current_idx:  0,
-        mc_answers_cache: answersCache,
-        mc_doc_context:  docText.slice(0, 4000),
-        mc_plan:         plan,
-      });
-
-      setLoading(btn, false);
-      $('mc-empty-state').classList.add('hidden');
-      $('mc-session').classList.remove('hidden');
-      renderMCQuestion(questions, 0);
+      questions    = items.map(item => item.question || '');
+      answersCache = items.reduce((acc, item, i) => { acc[i] = item.answer || ''; return acc; }, {});
     }
+
+    if (!questions || questions.length === 0) {
+      setLoading(btn, false);
+      btn.textContent = 'No questions found';
+      btn.style.color = '#f59e0b';
+      setTimeout(() => { btn.textContent = 'Load Questions from Doc'; btn.style.color = ''; }, 3000);
+      return;
+    }
+
+    await chrome.storage.local.set({
+      mc_questions:     questions,
+      mc_current_idx:   0,
+      mc_answers_cache: answersCache,
+      mc_doc_context:   docText.slice(0, 4000),
+      mc_plan:          planForStorage,
+    });
+
+    setLoading(btn, false);
+    $('mc-empty-state').classList.add('hidden');
+    $('mc-session').classList.remove('hidden');
+    renderMCQuestion(questions, 0);
 
   } catch (err) {
     setLoading(btn, false);
