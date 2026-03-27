@@ -283,24 +283,12 @@ input[type="range"] {
 
 .btn.primary:hover { background: var(--accent2); opacity: 1; }
 
-/* ── Full-width primary = the "generate" button — make it the star ── */
+/* ── Full-width primary = the "generate" button ── */
 .btn.primary.full {
-  padding: 11px 18px;
-  font-size: 13.5px;
-  font-weight: 700;
-  border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(249, 115, 22, 0.34);
-  letter-spacing: 0.01em;
-}
-.btn.primary.full:hover {
-  background: var(--accent2);
-  box-shadow: 0 6px 22px rgba(249, 115, 22, 0.44);
-  transform: translateY(-1px);
-  opacity: 1;
-}
-.btn.primary.full:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 10px;
 }
 
 .btn.danger {
@@ -661,7 +649,7 @@ footer {
 /* ─── Citation Style Select ──────────────────────────────────────────────────── */
 .cite-style-select {
   flex: 1;
-  height: 40px;
+  height: 32px;
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 10px;
