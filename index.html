@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClownFish AI — All-in-One Writing Assistant</title>
-  <meta name="description" content="The only Chrome extension with a problem solver, AI writer, humanizer, detector, auto typer, citations, summarizer, and fact checker all built in." />
+  <meta name="description" content="The only Chrome extension with an AI writer, problem solver, rewriter, AI detector, auto typer, citations, and summarizer all built in. No tab switching." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -33,6 +33,29 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── ANIMATIONS ── */
+    .anim {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.75s cubic-bezier(0.16,1,0.3,1);
+    }
+    .anim.in-view { opacity: 1; transform: none; }
+
+    .anim-d1 { transition-delay: 0.08s; }
+    .anim-d2 { transition-delay: 0.16s; }
+    .anim-d3 { transition-delay: 0.24s; }
+    .anim-d4 { transition-delay: 0.32s; }
+    .anim-d5 { transition-delay: 0.40s; }
+
+    .anim-scale {
+      opacity: 0;
+      transform: scale(0.94) translateY(20px);
+      transition: opacity 0.85s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.85s cubic-bezier(0.16,1,0.3,1);
+    }
+    .anim-scale.in-view { opacity: 1; transform: none; }
+
     /* ── NAV ── */
     nav {
       position: sticky;
@@ -53,12 +76,26 @@
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
       text-decoration: none;
       color: var(--text);
     }
-
     .nav-logo span { color: var(--orange); }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+    }
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 640px) { .nav-links { display: none; } }
 
     .nav-cta {
       background: var(--orange);
@@ -70,17 +107,27 @@
       text-decoration: none;
       transition: background 0.2s;
     }
-
     .nav-cta:hover { background: var(--orange-light); }
 
     /* ── HERO ── */
     .hero {
       text-align: center;
-      padding: 110px 5% 90px;
+      padding: 80px 5% 90px;
       position: relative;
       overflow: hidden;
     }
 
+    .hero-logo {
+      display: block;
+      margin: 0 auto 28px;
+      width: 220px;
+      height: 220px;
+      object-fit: contain;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      filter: contrast(1.12) saturate(1.2) drop-shadow(0 0 40px rgba(249,115,22,0.35));
+    }
+    .hero-logo.in-view { transform: scaleX(-1) !important; }
     .hero::before {
       content: '';
       position: absolute;
@@ -107,7 +154,6 @@
       margin-bottom: 28px;
       letter-spacing: 0.02em;
     }
-
     .badge::before { content: '✦'; }
 
     h1 {
@@ -118,7 +164,6 @@
       max-width: 800px;
       margin: 0 auto 20px;
     }
-
     h1 span { color: var(--orange); }
 
     .hero-sub {
@@ -148,7 +193,6 @@
       text-decoration: none;
       transition: background 0.2s, transform 0.15s;
     }
-
     .btn-primary:hover { background: var(--orange-light); transform: translateY(-1px); }
 
     .btn-secondary {
@@ -165,20 +209,173 @@
       border: 1px solid var(--border);
       transition: border-color 0.2s, transform 0.15s;
     }
-
     .btn-secondary:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
+
+    /* ── MARQUEE STRIP ── */
+    .marquee-strip {
+      overflow: hidden;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marquee 28s linear infinite;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .marquee-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 28px;
+      font-size: 0.82rem; font-weight: 500; color: var(--muted);
+      white-space: nowrap;
+    }
+    .marquee-item svg { flex-shrink: 0; opacity: 0.6; }
+    .marquee-sep { color: var(--border); padding: 0 4px; }
+
+    /* ── WHY CLOWNFISH ── */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 56px;
+    }
+    .why-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .why-card:hover { border-color: rgba(249,115,22,0.35); transform: translateY(-2px); }
+    .why-icon {
+      width: 42px; height: 42px;
+      background: var(--orange-dim); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .why-icon svg { width: 20px; height: 20px; }
+    .why-title { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .why-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── APP PREVIEW ── */
+    .preview-section {
+      padding: 80px 5%;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .preview-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .preview-text .section-tag { margin-bottom: 12px; }
+    .preview-text .section-title { margin-bottom: 14px; }
+    .preview-text .section-sub { margin-bottom: 0; }
+
+    .preview-mockup-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    .preview-glow {
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(circle, rgba(249,115,22,0.22) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .mockup-popup {
+      position: relative;
+      z-index: 1;
+      width: 340px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.10),
+                  0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transform: perspective(1400px) rotateY(-8deg) rotateX(3deg);
+      transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .mockup-popup:hover { transform: perspective(1400px) rotateY(-3deg) rotateX(1deg); }
+
+    .mockup-titlebar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 14px 8px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e8eaed;
+    }
+    .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mockup-dot:nth-child(1) { background: #ff5f57; }
+    .mockup-dot:nth-child(2) { background: #ffbd2e; }
+    .mockup-dot:nth-child(3) { background: #28c840; }
+
+    .mockup-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: #fff; border-bottom: 1px solid #e8eaed;
+    }
+    .mockup-logo-row {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13px; font-weight: 700; color: #111;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.2px;
+    }
+    .mockup-hdr-btns { display: flex; gap: 4px; }
+    .mockup-hdr-btn {
+      width: 22px; height: 22px; border-radius: 5px;
+      background: #f1f3f4; border: 1px solid #e8eaed;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mockup-wheel-area {
+      position: relative; width: 340px; height: 295px; background: #fff;
+    }
+    .mockup-ring {
+      position: absolute; width: 244px; height: 244px; border-radius: 50%;
+      border: 1px dashed rgba(249,115,22,0.3); top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .mockup-center-btn {
+      position: absolute; width: 68px; height: 68px; border-radius: 50%;
+      background: #f97316; box-shadow: 0 4px 18px rgba(249,115,22,0.5);
+      display: flex; align-items: center; justify-content: center;
+      top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;
+    }
+    .mockup-item {
+      position: absolute; width: 63px; height: 63px; border-radius: 50%;
+      background: #f97316; box-shadow: 0 3px 10px rgba(249,115,22,0.35);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px; z-index: 2;
+    }
+    .mockup-item span {
+      font-size: 8.5px; font-weight: 600; color: white;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      text-align: center; line-height: 1.2;
+    }
+    .mockup-item[data-idx="0"] { left: 139px; top: 6px;   }
+    .mockup-item[data-idx="1"] { left: 233px; top: 61px;  }
+    .mockup-item[data-idx="2"] { left: 233px; top: 170px; }
+    .mockup-item[data-idx="3"] { left: 139px; top: 225px; }
+    .mockup-item[data-idx="4"] { left: 45px;  top: 170px; }
+    .mockup-item[data-idx="5"] { left: 45px;  top: 61px;  }
 
     /* ── STATS BAR ── */
     .stats {
-      display: flex;
-      justify-content: center;
-      gap: 48px;
-      flex-wrap: wrap;
+      display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
       padding: 40px 5%;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
     }
-
     .stat { text-align: center; }
     .stat-num { font-size: 2rem; font-weight: 800; color: var(--orange); }
     .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
@@ -187,87 +384,254 @@
     section { padding: 90px 5%; }
 
     .section-tag {
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--orange);
-      margin-bottom: 12px;
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--orange); margin-bottom: 12px;
     }
-
     .section-title {
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.15;
-      max-width: 560px;
-      margin-bottom: 14px;
+      font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800;
+      letter-spacing: -0.02em; line-height: 1.15;
+      max-width: 560px; margin-bottom: 14px;
     }
+    .section-sub { color: var(--muted); max-width: 480px; margin-bottom: 56px; }
 
-    .section-sub {
-      color: var(--muted);
-      max-width: 480px;
-      margin-bottom: 56px;
-    }
+    /* ── FEATURES (alternating rows) ── */
+    .features-list { display: flex; flex-direction: column; }
 
-    /* ── FEATURES GRID ── */
-    .features-grid {
+    .feat-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-    }
-
-    .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-
-    .feature-card:hover {
-      border-color: rgba(249,115,22,0.35);
-      transform: translateY(-3px);
-    }
-
-    .feature-icon {
-      width: 44px;
-      height: 44px;
-      background: var(--orange-dim);
-      border-radius: 10px;
-      display: flex;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
       align-items: center;
-      justify-content: center;
-      margin-bottom: 18px;
-      flex-shrink: 0;
+      padding: 72px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .feat-row:last-child { border-bottom: none; }
+    .feat-row.rev .feat-info { order: 2; }
+    .feat-row.rev .feat-mockup { order: 1; }
+
+    .feat-icon {
+      width: 48px; height: 48px;
+      background: var(--orange-dim); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .feat-icon svg { width: 24px; height: 24px; }
+
+    .feat-title {
+      font-size: 1.55rem; font-weight: 800;
+      letter-spacing: -0.02em; margin-bottom: 10px;
     }
 
-    .feature-icon svg { width: 22px; height: 22px; }
-
-    .feature-title {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 8px;
+    .feat-modes {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
     }
-
-    .feature-desc {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .feature-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 700;
-      background: var(--orange-dim);
-      color: var(--orange);
+    .feat-mode {
+      font-size: 0.7rem; font-weight: 700;
+      background: var(--orange-dim); color: var(--orange);
       border: 1px solid rgba(249,115,22,0.25);
-      border-radius: 4px;
-      padding: 1px 6px;
-      margin-left: 6px;
-      vertical-align: middle;
-      letter-spacing: 0.04em;
+      border-radius: 5px; padding: 3px 9px;
+      letter-spacing: 0.03em;
+    }
+
+    .feat-desc {
+      font-size: 0.925rem; color: var(--muted); line-height: 1.75;
+    }
+
+    /* ── PANEL MOCKUP ── */
+    .feat-mockup {
+      display: flex; justify-content: center;
+      align-items: center; position: relative;
+    }
+    .pm-glow {
+      position: absolute; width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(249,115,22,0.2) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+    .pm-popup {
+      position: relative; z-index: 1; width: 280px;
+      background: #ffffff; border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 8px 20px rgba(0,0,0,0.10),
+                  0 24px 56px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.07);
+      overflow: hidden;
+      transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .pm-popup.tl { transform: perspective(1200px) rotateY(-8deg) rotateX(2deg); }
+    .pm-popup.tr { transform: perspective(1200px) rotateY(8deg) rotateX(2deg); }
+    .pm-popup:hover { transform: perspective(1200px) rotateY(0deg) rotateX(0deg) !important; }
+
+    .pm-titlebar {
+      display: flex; align-items: center; gap: 5px;
+      padding: 8px 11px 6px; background: #f8f9fa;
+      border-bottom: 1px solid #e8eaed;
+    }
+    .pm-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .pm-dot:nth-child(1) { background: #ff5f57; }
+    .pm-dot:nth-child(2) { background: #ffbd2e; }
+    .pm-dot:nth-child(3) { background: #28c840; }
+
+    .pm-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 11px; background: #fff; border-bottom: 1px solid #e8eaed;
+    }
+    .pm-hdr-logo {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 700; color: #111;
+      font-family: -apple-system, sans-serif; letter-spacing: -0.2px;
+    }
+    .pm-hdr-btn {
+      width: 20px; height: 20px; border-radius: 4px;
+      background: #f1f3f4; border: 1px solid #e8eaed;
+      display: flex; align-items: center; justify-content: center; margin-left: 4px;
+    }
+
+    .pm-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 11px; border-bottom: 1px solid #e8eaed; background: #f8f9fa;
+      font-family: -apple-system, sans-serif;
+    }
+    .pm-nav-back { font-size: 9.5px; color: #f97316; font-weight: 600; }
+    .pm-nav-title { font-size: 10px; font-weight: 600; color: #111; }
+    .pm-nav-clear { font-size: 9px; color: #6b7280; }
+
+    .pm-tabs {
+      display: flex; border-bottom: 1px solid #e8eaed; background: #f8f9fa;
+    }
+    .pm-tab {
+      flex: 1; text-align: center; padding: 5px 3px;
+      font-size: 9.5px; font-weight: 600; color: #9ca3af;
+      font-family: -apple-system, sans-serif;
+      border-right: 1px solid #e8eaed;
+    }
+    .pm-tab:last-child { border-right: none; }
+    .pm-tab.active { background: #fff; color: #f97316; }
+
+    .pm-body { padding: 9px 11px; background: #fff; }
+
+    .pm-label {
+      font-size: 9px; color: #9ca3af; margin-bottom: 4px;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .pm-textarea {
+      width: 100%; background: #f8f9fa; border: 1px solid #e8eaed;
+      border-radius: 5px; padding: 6px 8px; margin-bottom: 7px;
+    }
+    .pm-line {
+      display: block; font-size: 8.5px; color: #374151; line-height: 1.55;
+      font-family: -apple-system, sans-serif;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pm-line.muted { color: #9ca3af; }
+
+    .pm-row { display: flex; gap: 5px; margin-bottom: 7px; align-items: center; }
+
+    .pm-select {
+      flex: 1; background: #f8f9fa; border: 1px solid #e8eaed;
+      border-radius: 4px; padding: 4px 7px;
+      font-size: 8.5px; color: #374151; font-family: -apple-system, sans-serif;
+    }
+
+    .pm-slider-wrap { margin-bottom: 6px; }
+    .pm-slider-label {
+      display: flex; justify-content: space-between;
+      font-size: 8.5px; color: #374151; font-family: -apple-system, sans-serif;
+      margin-bottom: 3px;
+    }
+    .pm-slider-track {
+      height: 3px; background: #e8eaed; border-radius: 2px; position: relative;
+    }
+    .pm-slider-fill { height: 100%; border-radius: 2px; background: #f97316; }
+    .pm-slider-thumb {
+      position: absolute; top: 50%; width: 8px; height: 8px;
+      background: #f97316; border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 1px 3px rgba(249,115,22,0.45);
+    }
+
+    .pm-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 5.5px; border-radius: 5px;
+      font-size: 9.5px; font-weight: 600; margin-bottom: 7px;
+      font-family: -apple-system, sans-serif;
+    }
+    .pm-btn.primary { background: #f97316; color: #fff; }
+    .pm-btn.ghost { background: #f1f3f4; color: #374151; border: 1px solid #e8eaed; }
+    .pm-btn-row { display: flex; gap: 5px; margin-bottom: 7px; }
+    .pm-btn-row .pm-btn { margin-bottom: 0; }
+
+    .pm-status-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .pm-status-pill {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 9px; color: #10b981; font-weight: 600;
+      font-family: -apple-system, sans-serif;
+    }
+    .pm-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
+
+    .pm-result {
+      background: #f8f9fa; border: 1px solid #e8eaed;
+      border-radius: 7px; padding: 8px 9px; margin-top: 2px;
+    }
+    .pm-result-hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 7px; font-size: 9px; font-weight: 600; color: #111;
+      font-family: -apple-system, sans-serif;
+    }
+    .pm-result-btns { display: flex; gap: 3px; }
+    .pm-result-btn {
+      font-size: 8px; padding: 2px 5px;
+      background: #fff; border: 1px solid #e8eaed;
+      border-radius: 3px; color: #374151;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .pm-score-row { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+    .pm-score-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #fff8f8; border: 2px solid #ef4444;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10.5px; font-weight: 800; color: #ef4444;
+      font-family: -apple-system, sans-serif; flex-shrink: 0;
+    }
+    .pm-score-verdict { font-size: 9.5px; font-weight: 700; color: #ef4444; font-family: -apple-system, sans-serif; }
+    .pm-score-conf { font-size: 8.5px; color: #6b7280; font-family: -apple-system, sans-serif; }
+
+    .pm-bar-labels {
+      display: flex; justify-content: space-between;
+      font-size: 7.5px; color: #9ca3af; font-family: -apple-system, sans-serif; margin-bottom: 2px;
+    }
+    .pm-bar-track { height: 4px; background: #e8eaed; border-radius: 2px; overflow: hidden; }
+    .pm-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%); border-radius: 2px; }
+
+    .pm-indicator {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 0; border-top: 1px solid #e8eaed; margin-top: 4px;
+      font-size: 8px; color: #374151; font-family: -apple-system, sans-serif;
+    }
+    .pm-indicator-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+    .pm-cite-item {
+      background: #fff; border: 1px solid #e8eaed;
+      border-radius: 5px; padding: 6px 8px; margin-top: 5px;
+    }
+    .pm-cite-text {
+      font-size: 8px; color: #374151; line-height: 1.5;
+      font-family: -apple-system, sans-serif; font-style: italic; margin-bottom: 3px;
+    }
+    .pm-cite-meta {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .pm-cite-conf { font-size: 7.5px; color: #10b981; font-weight: 600; font-family: -apple-system, sans-serif; }
+    .pm-cite-copy {
+      font-size: 7.5px; padding: 1px 5px; background: #f1f3f4;
+      border: 1px solid #e8eaed; border-radius: 3px; color: #6b7280;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .pm-output {
+      background: #f8f9fa; border: 1px solid #e8eaed;
+      border-radius: 5px; padding: 6px 8px; margin-top: 5px;
     }
 
     /* ── HOW IT WORKS ── */
@@ -275,205 +639,53 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 0;
-      counter-reset: steps;
     }
-
     .step {
-      padding: 36px 32px;
-      border-right: 1px solid var(--border);
-      position: relative;
+      padding: 36px 32px; border-right: 1px solid var(--border); position: relative;
     }
-
     .step:last-child { border-right: none; }
-
-    .step-num {
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: var(--orange-dim);
-      line-height: 1;
-      margin-bottom: 16px;
-    }
-
-    .step-title {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
+    .step-num { font-size: 2.5rem; font-weight: 900; color: var(--orange-dim); line-height: 1; margin-bottom: 16px; }
+    .step-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
     .step-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
-
-    .how-wrapper {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
+    .how-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 
     /* ── CTA SECTION ── */
     .cta-section {
-      text-align: center;
-      padding: 100px 5%;
-      position: relative;
-      overflow: hidden;
+      text-align: center; padding: 100px 5%; position: relative; overflow: hidden;
     }
-
     .cta-section::before {
-      content: '';
-      position: absolute;
-      bottom: -100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
+      content: ''; position: absolute; bottom: -100px; left: 50%;
+      transform: translateX(-50%); width: 600px; height: 600px;
       background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%);
       pointer-events: none;
     }
-
-    .cta-section h2 {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      margin-bottom: 14px;
-    }
-
+    .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; letter-spacing: -0.02em; margin-bottom: 14px; }
     .cta-section p { color: var(--muted); margin-bottom: 36px; font-size: 1.05rem; }
 
     /* ── FOOTER ── */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 28px 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 0.85rem;
+      border-top: 1px solid var(--border); padding: 28px 5%;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 0.85rem;
     }
-
-    .footer-logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 700;
-      color: var(--text);
-    }
+    .footer-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
     .footer-logo span { color: var(--orange); }
 
-    /* ── CHROME ICON SVG ── */
-    .chrome-icon {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-
-    /* ── FEEDBACK ── */
-    .feedback-section { padding: 90px 5%; }
-
-    .feedback-inner {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .feedback-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 40px;
-    }
-
-    .stars {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 28px;
-    }
-
-    .star {
-      font-size: 2rem;
-      cursor: pointer;
-      color: #333;
-      transition: color 0.15s, transform 0.1s;
-      user-select: none;
-      line-height: 1;
-    }
-
-    .star:hover, .star.active { color: var(--orange); }
-    .star:hover { transform: scale(1.15); }
-
-    .feedback-field {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-      padding: 12px 16px;
-      margin-bottom: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-      resize: none;
-    }
-
-    .feedback-field::placeholder { color: var(--muted); }
-    .feedback-field:focus { border-color: rgba(249,115,22,0.5); }
-
-    .feedback-submit {
-      width: 100%;
-      background: var(--orange);
-      color: #000;
-      font-weight: 700;
-      font-size: 0.95rem;
-      padding: 13px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .feedback-submit:hover:not(:disabled) { background: var(--orange-light); transform: translateY(-1px); }
-    .feedback-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .feedback-status {
-      margin-top: 14px;
-      font-size: 0.875rem;
-      text-align: center;
-      min-height: 20px;
-    }
-
-    .feedback-status.success { color: #4ade80; }
-    .feedback-status.error   { color: #f87171; }
-
-    .feedback-success-state {
-      text-align: center;
-      padding: 20px 0;
-      display: none;
-    }
-
-    .feedback-success-state .check {
-      font-size: 2.5rem;
-      margin-bottom: 12px;
-    }
-
-    .feedback-success-state p {
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .feedback-success-state strong {
-      color: var(--text);
-      display: block;
-      font-size: 1.1rem;
-      margin-bottom: 6px;
-    }
+    .chrome-icon { width: 20px; height: 20px; flex-shrink: 0; }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .preview-inner { grid-template-columns: 1fr; gap: 40px; }
+      .mockup-popup { transform: none; margin: 0 auto; }
+      .feat-row { grid-template-columns: 1fr; gap: 36px; padding: 52px 0; }
+      .feat-row.rev .feat-info { order: 1; }
+      .feat-row.rev .feat-mockup { order: 2; }
+      .pm-popup { transform: none !important; margin: 0 auto; }
+    }
     @media (max-width: 640px) {
       .stats { gap: 28px; }
       .step { border-right: none; border-bottom: 1px solid var(--border); }
       .step:last-child { border-bottom: none; }
-      .feedback-card { padding: 28px 20px; }
     }
   </style>
 </head>
@@ -482,7 +694,7 @@
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">
-    <svg viewBox="0 0 32 32" width="24" height="24">
+    <svg viewBox="0 0 32 32" width="26" height="26">
       <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
       <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
       <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
@@ -491,24 +703,25 @@
       <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
       <circle cx="5.5" cy="15" r="1.1" fill="white"/>
     </svg>
-    Clown<span>Fish</span> AI
+    ClownFish <span>AI</span>
   </a>
-  <div style="display:flex;align-items:center;gap:14px;">
-    <a href="#features" style="color:var(--muted);font-size:0.875rem;font-weight:500;text-decoration:none;">Features</a>
-    <a href="#how" style="color:var(--muted);font-size:0.875rem;font-weight:500;text-decoration:none;">How it works</a>
-    <a href="#feedback" style="color:var(--muted);font-size:0.875rem;font-weight:500;text-decoration:none;">Feedback</a>
-    <a href="https://chrome.google.com/webstore" class="nav-cta" target="_blank">Add to Chrome</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#feedback">Feedback</a>
   </div>
+  <a href="https://chrome.google.com/webstore" class="nav-cta" target="_blank">Add to Chrome</a>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="badge">Chrome Extension</div>
-  <h1>Every writing tool.<br /><span>One extension.</span></h1>
-  <p class="hero-sub">AI writer, problem solver, humanizer, detector, auto typer, citations, summarizer, and fact checker — all built in. No tab switching. No subscriptions.</p>
-  <div class="hero-btns">
+  <img class="hero-logo anim" src="clownfish.png" alt="Clownfish" />
+  <div class="badge anim anim-d1">Chrome Extension</div>
+  <h1 class="anim anim-d2">Six writing tools.<br /><span>One extension.</span></h1>
+  <p class="hero-sub anim anim-d3">AI writer, problem solver, rewriter, detector, auto typer, citations &amp; summarizer — all in one extension. No tab switching. No subscriptions.</p>
+  <div class="hero-btns anim anim-d4">
     <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank">
-      <svg class="chrome-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="chrome-icon" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="4" fill="#000"/>
         <path d="M12 8h8.66a10 10 0 1 0-4.33 13.65L12 16" stroke="#000" stroke-width="2"/>
       </svg>
@@ -518,107 +731,428 @@
   </div>
 </section>
 
-<!-- STATS -->
-<div class="stats">
-  <div class="stat">
-    <div class="stat-num">6</div>
-    <div class="stat-label">Tools in one extension</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">0</div>
-    <div class="stat-label">Tab switching required</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">∞</div>
-    <div class="stat-label">Sites it works on</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num">$0.99</div>
-    <div class="stat-label">One-time cost</div>
+<!-- MARQUEE STRIP -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <!-- first copy -->
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Google Docs</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Canvas LMS</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg> Blackboard</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Gmail</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Google Classroom</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Moodle</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Any Text Field</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Notion</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Google Docs</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Canvas LMS</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg> Blackboard</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Gmail</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Google Classroom</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Moodle</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Any Text Field</span>
+    <span class="marquee-item"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Notion</span>
   </div>
 </div>
 
+<!-- APP PREVIEW -->
+<section class="preview-section">
+  <div class="preview-inner">
+    <div class="preview-text">
+      <div class="section-tag anim">See it in action</div>
+      <h2 class="section-title anim anim-d1">Six tools.<br/>One popup.</h2>
+      <p class="section-sub anim anim-d2" style="margin-bottom:0">Click the ClownFish icon in your toolbar and pick any tool from the wheel — no new tabs, no separate logins, no copy-pasting.</p>
+    </div>
+    <div class="preview-mockup-wrap anim-scale">
+      <div class="preview-glow"></div>
+      <div class="mockup-popup">
+        <div class="mockup-titlebar">
+          <span class="mockup-dot"></span><span class="mockup-dot"></span><span class="mockup-dot"></span>
+        </div>
+        <div class="mockup-hdr">
+          <div class="mockup-logo-row">
+            <svg viewBox="0 0 32 32" width="18" height="18"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg>
+            ClownFish AI
+          </div>
+          <div class="mockup-hdr-btns">
+            <div class="mockup-hdr-btn"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#666" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+            <div class="mockup-hdr-btn"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+          </div>
+        </div>
+        <div class="mockup-wheel-area">
+          <div class="mockup-ring"></div>
+          <div class="mockup-center-btn">
+            <svg viewBox="0 0 32 32" width="28" height="28"><path d="M21 16 L30 8 L30 24 Z" fill="white"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="white"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="white"/><path d="M10 21 Q6 26 10 24 Z" fill="white"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="#f97316" opacity="0.45"/><circle cx="5.5" cy="15" r="2.5" fill="#ea580c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg>
+          </div>
+          <div class="mockup-item" data-idx="0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="white" stroke="none"/><circle cx="10" cy="10" r="1" fill="white" stroke="none"/><circle cx="14" cy="10" r="1" fill="white" stroke="none"/><circle cx="18" cy="10" r="1" fill="white" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="white" stroke="none"/></svg><span>Auto<br/>Typer</span></div>
+          <div class="mockup-item" data-idx="1"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span>Problem<br/>Solver</span></div>
+          <div class="mockup-item" data-idx="2"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg><span>AI<br/>Checker</span></div>
+          <div class="mockup-item" data-idx="3"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg><span>Rewriter</span></div>
+          <div class="mockup-item" data-idx="4"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>Citations</span></div>
+          <div class="mockup-item" data-idx="5"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="14" y2="18"/></svg><span>Summarize</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat anim"><div class="stat-num">6</div><div class="stat-label">Tools in one extension</div></div>
+  <div class="stat anim anim-d1"><div class="stat-num">0</div><div class="stat-label">Tab switching required</div></div>
+  <div class="stat anim anim-d2"><div class="stat-num">∞</div><div class="stat-label">Sites it works on</div></div>
+  <div class="stat anim anim-d3"><div class="stat-num">$0.99</div><div class="stat-label">One-time cost</div></div>
+</div>
+
+<!-- WHY CLOWNFISH -->
+<section>
+  <div class="section-tag anim">Why ClownFish</div>
+  <h2 class="section-title anim anim-d1">One extension beats six bookmarks</h2>
+  <p class="section-sub anim anim-d2">Every AI writing tool you actually need, in one place — so you can stop switching tabs and start finishing work.</p>
+  <div class="why-grid">
+    <div class="why-card anim anim-d1">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <div class="why-title">All-in-one popup</div>
+      <p class="why-desc">Six tools in one browser popup. Write, rewrite, detect, cite, summarize — without ever leaving the page you're working on.</p>
+    </div>
+    <div class="why-card anim anim-d2">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+      </div>
+      <div class="why-title">Works everywhere</div>
+      <p class="why-desc">Google Docs, Canvas, Blackboard, Gmail, any text field. The auto typer types answers directly into the page — no copy-pasting.</p>
+    </div>
+    <div class="why-card anim anim-d3">
+      <div class="why-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+      </div>
+      <div class="why-title">Free to start</div>
+      <p class="why-desc">Plug in a free Groq API key and every tool works immediately. No subscription, no credit card, no usage limits enforced by us.</p>
+    </div>
+  </div>
+</section>
+
 <!-- FEATURES -->
 <section id="features">
-  <div class="section-tag">Everything included</div>
-  <h2 class="section-title">Every tool you need for writing, in one place</h2>
-  <p class="section-sub">Stop paying for six different websites. ClownFish has all of it built in and works everywhere you write.</p>
+  <div class="section-tag anim">Everything included</div>
+  <h2 class="section-title anim anim-d1">Every tool you need, built in</h2>
+  <p class="section-sub anim anim-d2">Six tools in one popup. No switching tabs, no separate accounts, no subscriptions.</p>
 
-  <div class="features-grid">
+  <div class="features-list">
 
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
+    <!-- AUTO TYPER -->
+    <div class="feat-row">
+      <div class="feat-info anim">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="2"/>
+            <circle cx="6" cy="10" r="1" fill="#f97316" stroke="none"/>
+            <circle cx="10" cy="10" r="1" fill="#f97316" stroke="none"/>
+            <circle cx="14" cy="10" r="1" fill="#f97316" stroke="none"/>
+            <circle cx="18" cy="10" r="1" fill="#f97316" stroke="none"/>
+            <rect x="7.5" y="13" width="9" height="2" rx="1" fill="#f97316" stroke="none"/>
+          </svg>
+        </div>
+        <div class="feat-title">Auto Typer</div>
+        <p class="feat-desc">Types any text into any field on any page at a natural, human-like pace. Adjust typing speed (WPM), randomness, and typo rate. Runs entirely in the background — it keeps typing even if you switch tabs.</p>
       </div>
-      <div class="feature-title">Problem Solver</div>
-      <p class="feature-desc">Two modes in one tool. <strong>AI Writer</strong> generates full essays, paragraphs, and responses from a prompt — adjust tone and length to match any assignment. <strong>Problem Solver</strong> goes through your doc question by question, generating answers you can auto-type one at a time.</p>
+      <div class="feat-mockup anim anim-d2">
+        <div class="pm-glow"></div>
+        <div class="pm-popup tl">
+          <div class="pm-titlebar"><span class="pm-dot"></span><span class="pm-dot"></span><span class="pm-dot"></span></div>
+          <div class="pm-hdr">
+            <div class="pm-hdr-logo"><svg viewBox="0 0 32 32" width="14" height="14"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg> ClownFish AI</div>
+            <div class="pm-hdr-btn"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+          </div>
+          <div class="pm-nav"><span class="pm-nav-back">← Wheel</span><span class="pm-nav-title">Auto Typer</span><span class="pm-nav-clear">Clear All</span></div>
+          <div class="pm-body">
+            <div class="pm-label">Paste text to auto-type</div>
+            <div class="pm-textarea">
+              <span class="pm-line">The mitochondria is the powerhouse of the cell.</span>
+              <span class="pm-line">In eukaryotic organisms, these organelles are</span>
+              <span class="pm-line">responsible for producing ATP through cellular...</span>
+            </div>
+            <div class="pm-slider-wrap">
+              <div class="pm-slider-label"><span>Speed <strong>60 WPM</strong></span></div>
+              <div class="pm-slider-track"><div class="pm-slider-fill" style="width:30%"></div><div class="pm-slider-thumb" style="left:30%"></div></div>
+            </div>
+            <div class="pm-slider-wrap">
+              <div class="pm-slider-label"><span>Randomness <strong>20%</strong></span></div>
+              <div class="pm-slider-track"><div class="pm-slider-fill" style="width:20%"></div><div class="pm-slider-thumb" style="left:20%"></div></div>
+            </div>
+            <div class="pm-slider-wrap" style="margin-bottom:8px">
+              <div class="pm-slider-label"><span>Typo Rate <strong>0%</strong></span></div>
+              <div class="pm-slider-track"><div class="pm-slider-fill" style="width:0%"></div><div class="pm-slider-thumb" style="left:0%"></div></div>
+            </div>
+            <div class="pm-status-row">
+              <div class="pm-status-pill"><div class="pm-status-dot"></div> Ready</div>
+              <div class="pm-btn primary" style="width:auto;padding:5px 14px;margin:0">▶ Start</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          <line x1="11" y1="8" x2="11" y2="14"/>
-          <line x1="8" y1="11" x2="14" y2="11"/>
-        </svg>
+    <!-- PROBLEM SOLVER (reversed) -->
+    <div class="feat-row rev">
+      <div class="feat-info anim">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </div>
+        <div class="feat-title">Problem Solver</div>
+        <div class="feat-modes">
+          <span class="feat-mode">AI Writer</span>
+          <span class="feat-mode">Multi Problem Solver</span>
+          <span class="feat-mode">Lab Report</span>
+        </div>
+        <p class="feat-desc"><strong style="color:var(--text)">AI Writer</strong> generates essays and responses from a prompt — choose tone and length, or use Advanced Write for a 3-step direction → outline → essay flow. <strong style="color:var(--text)">Multi Problem Solver</strong> loads your assignment doc and answers each question one at a time, auto-typing each answer into the page. <strong style="color:var(--text)">Lab Report</strong> writes a full structured report from a short description of your experiment.</p>
       </div>
-      <div class="feature-title">AI Checker</div>
-      <p class="feature-desc">Two modes in one tool. <strong>AI Check</strong> scores your text 0–100 for AI likelihood using the same signals as GPTZero, with a full breakdown of what was flagged. <strong>Fact Check</strong> scans every claim in your writing and returns a true / false / uncertain verdict for each one.</p>
+      <div class="feat-mockup anim anim-d2">
+        <div class="pm-glow"></div>
+        <div class="pm-popup tr">
+          <div class="pm-titlebar"><span class="pm-dot"></span><span class="pm-dot"></span><span class="pm-dot"></span></div>
+          <div class="pm-hdr">
+            <div class="pm-hdr-logo"><svg viewBox="0 0 32 32" width="14" height="14"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg> ClownFish AI</div>
+            <div class="pm-hdr-btn"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+          </div>
+          <div class="pm-nav"><span class="pm-nav-back">← Wheel</span><span class="pm-nav-title">Problem Solver</span><span class="pm-nav-clear">Clear All</span></div>
+          <div class="pm-tabs">
+            <div class="pm-tab active">AI Writer</div>
+            <div class="pm-tab">Multi Problem Solver</div>
+            <div class="pm-tab">Lab Report</div>
+          </div>
+          <div class="pm-body">
+            <div class="pm-label">Paste assignment or describe what to write</div>
+            <div class="pm-textarea">
+              <span class="pm-line">Write a 5-paragraph essay about the causes of</span>
+              <span class="pm-line">World War I, including the assassination of</span>
+              <span class="pm-line muted">Archduke Franz Ferdinand and alliances...</span>
+            </div>
+            <div class="pm-row">
+              <div class="pm-select">Medium (3–5 paragraphs) ▾</div>
+              <div class="pm-select">Academic ▾</div>
+            </div>
+            <div class="pm-btn-row">
+              <div class="pm-btn primary" style="flex:1">Write</div>
+              <div class="pm-btn ghost" style="flex:1">Advanced Write</div>
+            </div>
+            <div class="pm-output">
+              <span class="pm-line" style="font-weight:600;margin-bottom:3px;display:block;font-size:8px;color:#6b7280">Generated</span>
+              <span class="pm-line">The outbreak of World War I in 1914 resulted</span>
+              <span class="pm-line">from a complex interplay of nationalism,</span>
+              <span class="pm-line muted">militarism, and entangled alliance systems...</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/>
-          <polyline points="23 20 23 14 17 14"/>
-          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-        </svg>
+    <!-- AI CHECKER -->
+    <div class="feat-row">
+      <div class="feat-info anim">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="11" y1="8" x2="11" y2="14"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </div>
+        <div class="feat-title">AI Checker</div>
+        <div class="feat-modes">
+          <span class="feat-mode">AI Check</span>
+          <span class="feat-mode">Fact Check</span>
+        </div>
+        <p class="feat-desc"><strong style="color:var(--text)">AI Check</strong> scores your text 0–100 for AI likelihood using the same signals as GPTZero, with a full breakdown of what was flagged — check before you submit. <strong style="color:var(--text)">Fact Check</strong> scans every claim in your writing and returns a true / false / uncertain verdict for each one, with highlights directly on the page.</p>
       </div>
-      <div class="feature-title">Rewriter</div>
-      <p class="feature-desc">Paste AI-generated text and get back something that reads like you wrote it. Adjustable from a light polish all the way to a full sentence-level rewrite. Upload samples of your own writing to match your personal style.</p>
+      <div class="feat-mockup anim anim-d2">
+        <div class="pm-glow"></div>
+        <div class="pm-popup tl">
+          <div class="pm-titlebar"><span class="pm-dot"></span><span class="pm-dot"></span><span class="pm-dot"></span></div>
+          <div class="pm-hdr">
+            <div class="pm-hdr-logo"><svg viewBox="0 0 32 32" width="14" height="14"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg> ClownFish AI</div>
+            <div class="pm-hdr-btn"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+          </div>
+          <div class="pm-nav"><span class="pm-nav-back">← Wheel</span><span class="pm-nav-title">AI Checker</span><span class="pm-nav-clear">Clear All</span></div>
+          <div class="pm-tabs">
+            <div class="pm-tab active">AI Check</div>
+            <div class="pm-tab">Fact Check</div>
+          </div>
+          <div class="pm-body">
+            <div class="pm-textarea">
+              <span class="pm-line">The American Civil War began in 1861 when</span>
+              <span class="pm-line">Southern states seceded to form the Confederate</span>
+              <span class="pm-line muted">States of America following Abraham Lincoln's...</span>
+            </div>
+            <div class="pm-btn primary" style="margin-bottom:7px">Analyze Text</div>
+            <div class="pm-result">
+              <div class="pm-result-hdr">Detection Result <div class="pm-result-btns"><span class="pm-result-btn">Copy</span><span class="pm-result-btn">Auto Type</span></div></div>
+              <div class="pm-score-row">
+                <div class="pm-score-circle">78%</div>
+                <div><div class="pm-score-verdict">Likely AI</div><div class="pm-score-conf">Confidence: High</div></div>
+              </div>
+              <div class="pm-bar-labels"><span>Human</span><span>AI</span></div>
+              <div class="pm-bar-track"><div class="pm-bar-fill" style="width:78%"></div></div>
+              <div class="pm-indicator"><div class="pm-indicator-dot" style="background:#ef4444"></div>Low perplexity detected</div>
+              <div class="pm-indicator"><div class="pm-indicator-dot" style="background:#f59e0b"></div>Low burstiness score</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="6" width="20" height="12" rx="2"/>
-          <circle cx="6" cy="10" r="1" fill="#f97316" stroke="none"/>
-          <circle cx="10" cy="10" r="1" fill="#f97316" stroke="none"/>
-          <circle cx="14" cy="10" r="1" fill="#f97316" stroke="none"/>
-          <circle cx="18" cy="10" r="1" fill="#f97316" stroke="none"/>
-          <rect x="7.5" y="13" width="9" height="2" rx="1" fill="#f97316" stroke="none"/>
-        </svg>
+    <!-- REWRITER (reversed) -->
+    <div class="feat-row rev">
+      <div class="feat-info anim">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/>
+            <polyline points="23 20 23 14 17 14"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+        </div>
+        <div class="feat-title">Rewriter</div>
+        <p class="feat-desc">Paste AI-generated text and get back something that reads like you wrote it. Adjust the intensity from a light touch-up all the way to a full sentence-level rewrite. Set the language level from very casual to very academic. Upload samples of your own writing (PDF or TXT) and the AI will match your personal vocabulary and tone.</p>
       </div>
-      <div class="feature-title">Auto Typer</div>
-      <p class="feature-desc">Automatically types your text into any field on any page at a natural, human-like pace. Adjustable speed, randomness, and typo rate. Types in the background — works even if you switch tabs.</p>
+      <div class="feat-mockup anim anim-d2">
+        <div class="pm-glow"></div>
+        <div class="pm-popup tr">
+          <div class="pm-titlebar"><span class="pm-dot"></span><span class="pm-dot"></span><span class="pm-dot"></span></div>
+          <div class="pm-hdr">
+            <div class="pm-hdr-logo"><svg viewBox="0 0 32 32" width="14" height="14"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg> ClownFish AI</div>
+            <div class="pm-hdr-btn"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+          </div>
+          <div class="pm-nav"><span class="pm-nav-back">← Wheel</span><span class="pm-nav-title">Rewriter</span><span class="pm-nav-clear">Clear All</span></div>
+          <div class="pm-body">
+            <div class="pm-label">Input text to humanize</div>
+            <div class="pm-textarea">
+              <span class="pm-line">Artificial intelligence has revolutionized</span>
+              <span class="pm-line">numerous industries by enabling machines to</span>
+              <span class="pm-line muted">perform tasks requiring human intelligence...</span>
+            </div>
+            <div class="pm-slider-wrap">
+              <div class="pm-slider-label"><span>Humanization Level <strong>5/10</strong></span></div>
+              <div class="pm-slider-track"><div class="pm-slider-fill" style="width:50%"></div><div class="pm-slider-thumb" style="left:50%"></div></div>
+            </div>
+            <div class="pm-slider-wrap">
+              <div class="pm-slider-label"><span>Language Level <strong>Neutral</strong></span></div>
+              <div class="pm-slider-track"><div class="pm-slider-fill" style="width:50%"></div><div class="pm-slider-thumb" style="left:50%"></div></div>
+            </div>
+            <div class="pm-slider-wrap" style="margin-bottom:8px">
+              <div class="pm-slider-label"><span>Personalized Style <strong>0/10</strong></span></div>
+              <div class="pm-slider-track"><div class="pm-slider-fill" style="width:0%"></div><div class="pm-slider-thumb" style="left:0%"></div></div>
+            </div>
+            <div class="pm-btn primary">Humanize Text</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
-        </svg>
+    <!-- CITATIONS -->
+    <div class="feat-row">
+      <div class="feat-info anim">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+          </svg>
+        </div>
+        <div class="feat-title">Citations</div>
+        <p class="feat-desc">Paste your text and instantly get properly formatted sources for every claim. Supports APA, MLA, and Chicago format with one-click copy. Works from a doc or any pasted text.</p>
       </div>
-      <div class="feature-title">Citations</div>
-      <p class="feature-desc">Paste your text and instantly get properly formatted sources for every claim. Supports APA, MLA, and Chicago with one-click copy.</p>
+      <div class="feat-mockup anim anim-d2">
+        <div class="pm-glow"></div>
+        <div class="pm-popup tl">
+          <div class="pm-titlebar"><span class="pm-dot"></span><span class="pm-dot"></span><span class="pm-dot"></span></div>
+          <div class="pm-hdr">
+            <div class="pm-hdr-logo"><svg viewBox="0 0 32 32" width="14" height="14"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg> ClownFish AI</div>
+            <div class="pm-hdr-btn"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+          </div>
+          <div class="pm-nav"><span class="pm-nav-back">← Wheel</span><span class="pm-nav-title">Citations</span><span class="pm-nav-clear">Clear All</span></div>
+          <div class="pm-body">
+            <div class="pm-label">Find sources &amp; format citations</div>
+            <div class="pm-textarea">
+              <span class="pm-line">Climate change is accelerating at unprecedented</span>
+              <span class="pm-line">rates, with global temperatures rising 1.1°C</span>
+              <span class="pm-line muted">above pre-industrial levels since the 1800s...</span>
+            </div>
+            <div class="pm-select" style="margin-bottom:7px;display:block">MLA ▾</div>
+            <div class="pm-btn primary" style="margin-bottom:8px">Find Sources</div>
+            <div class="pm-cite-item">
+              <div class="pm-cite-text">IPCC. (2023). Climate Change 2023: Synthesis Report. Intergovernmental Panel on Climate Change.</div>
+              <div class="pm-cite-meta"><span class="pm-cite-conf">★★★ High confidence</span><span class="pm-cite-copy">Copy</span></div>
+            </div>
+            <div class="pm-cite-item">
+              <div class="pm-cite-text">Hansen, J., et al. (2023). Global warming in the pipeline. Oxford Open Climate Change.</div>
+              <div class="pm-cite-meta"><span class="pm-cite-conf">★★★ High confidence</span><span class="pm-cite-copy">Copy</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="feature-card">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-          <line x1="3" y1="14" x2="21" y2="14"/>
-          <line x1="3" y1="18" x2="14" y2="18"/>
-        </svg>
+    <!-- SUMMARIZE (reversed) -->
+    <div class="feat-row rev">
+      <div class="feat-info anim">
+        <div class="feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="3" y1="14" x2="21" y2="14"/>
+            <line x1="3" y1="18" x2="14" y2="18"/>
+          </svg>
+        </div>
+        <div class="feat-title">Summarize</div>
+        <div class="feat-modes">
+          <span class="feat-mode">Summarize</span>
+          <span class="feat-mode">Explain</span>
+        </div>
+        <p class="feat-desc"><strong style="color:var(--text)">Summarize</strong> condenses any article, assignment, or document into a brief, standard, or detailed summary — load straight from a page or paste any text. <strong style="color:var(--text)">Explain</strong> breaks down complex academic or technical content into simple terms, so you actually understand what you're writing about before you write about it.</p>
       </div>
-      <div class="feature-title">Summarize</div>
-      <p class="feature-desc">Condense any assignment, article, or document into a brief, standard, or detailed summary — without reading the whole thing. Load from a page with one click or paste any text.</p>
+      <div class="feat-mockup anim anim-d2">
+        <div class="pm-glow"></div>
+        <div class="pm-popup tr">
+          <div class="pm-titlebar"><span class="pm-dot"></span><span class="pm-dot"></span><span class="pm-dot"></span></div>
+          <div class="pm-hdr">
+            <div class="pm-hdr-logo"><svg viewBox="0 0 32 32" width="14" height="14"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg> ClownFish AI</div>
+            <div class="pm-hdr-btn"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></div>
+          </div>
+          <div class="pm-nav"><span class="pm-nav-back">← Wheel</span><span class="pm-nav-title">Summarize</span><span class="pm-nav-clear">Clear All</span></div>
+          <div class="pm-tabs">
+            <div class="pm-tab active">Summarize</div>
+            <div class="pm-tab">Explain</div>
+          </div>
+          <div class="pm-body">
+            <div class="pm-textarea">
+              <span class="pm-line">The Renaissance was a period of European cultural,</span>
+              <span class="pm-line">artistic and intellectual rebirth that followed</span>
+              <span class="pm-line muted">the Middle Ages, beginning in 14th-century Italy...</span>
+            </div>
+            <div class="pm-select" style="margin-bottom:7px;display:block">Standard summary ▾</div>
+            <div class="pm-btn primary" style="margin-bottom:7px">Summarize</div>
+            <div class="pm-output">
+              <span class="pm-line" style="font-weight:600;font-size:8px;color:#6b7280;margin-bottom:3px;display:block">Summary</span>
+              <span class="pm-line">The Renaissance (14th–17th c.) was a cultural</span>
+              <span class="pm-line">revival in Europe marked by advances in art,</span>
+              <span class="pm-line muted">science, and philosophy, beginning in Italy.</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -626,163 +1160,84 @@
 
 <!-- HOW IT WORKS -->
 <section id="how">
-  <div class="section-tag">How it works</div>
-  <h2 class="section-title">Up and running in 60 seconds</h2>
-  <p class="section-sub">No setup. No accounts required to start. Just install and click the icon.</p>
-
-  <div class="how-wrapper">
+  <div class="section-tag anim">How it works</div>
+  <h2 class="section-title anim anim-d1">Up and running in 60 seconds</h2>
+  <p class="section-sub anim anim-d2">No setup. No accounts required to start. Just install and click the icon.</p>
+  <div class="how-wrapper anim anim-d3">
     <div class="how-grid">
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-title">Install the extension</div>
-        <p class="step-desc">Add ClownFish to Chrome from the Web Store. It takes about 10 seconds.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-title">Add your API key</div>
-        <p class="step-desc">Paste a free Groq API key or an OpenAI key in settings. Groq is free to start.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-title">Pick a tool</div>
-        <p class="step-desc">Click the ClownFish icon, choose any of the tools from the wheel, and go.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-title">Works everywhere</div>
-        <p class="step-desc">Google Docs, Canvas, Blackboard, any site. No copy-pasting between tabs.</p>
-      </div>
+      <div class="step"><div class="step-num">01</div><div class="step-title">Install the extension</div><p class="step-desc">Add ClownFish to Chrome from the Web Store. It takes about 10 seconds.</p></div>
+      <div class="step"><div class="step-num">02</div><div class="step-title">Add your API key</div><p class="step-desc">Paste a free Groq API key or an OpenAI key in settings. Groq is free to start.</p></div>
+      <div class="step"><div class="step-num">03</div><div class="step-title">Pick a tool</div><p class="step-desc">Click the ClownFish icon, choose any of the six tools from the wheel, and go.</p></div>
+      <div class="step"><div class="step-num">04</div><div class="step-title">Works everywhere</div><p class="step-desc">Google Docs, Canvas, Blackboard, any site. No copy-pasting between tabs.</p></div>
     </div>
   </div>
 </section>
 
-
 <!-- CTA -->
 <section class="cta-section">
-  <h2>Stop switching tabs.<br />Get everything in one place.</h2>
-  <p>Install ClownFish and have every writing tool you need right in your browser.</p>
-  <a href="https://chrome.google.com/webstore" class="btn-primary" target="_blank" style="font-size:1.05rem;padding:16px 36px;">
-    Add to Chrome — Only 99¢
-  </a>
+  <h2 class="anim">Stop switching tabs.<br />Get everything in one place.</h2>
+  <p class="anim anim-d1">Install ClownFish and have every writing tool you need right in your browser.</p>
+  <a href="https://chrome.google.com/webstore" class="btn-primary anim anim-d2" target="_blank" style="font-size:1.05rem;padding:16px 36px;">Add to Chrome</a>
 </section>
 
 <!-- FEEDBACK -->
-<section class="feedback-section" id="feedback">
-  <div class="feedback-inner">
+<section id="feedback" style="padding:90px 5%;">
+  <div style="max-width:600px;margin:0 auto;">
     <div style="text-align:center;margin-bottom:36px;">
-      <div class="section-tag" style="justify-content:center;display:flex;">Feedback</div>
-      <h2 class="section-title" style="max-width:100%;text-align:center;">What do you think?</h2>
-      <p style="color:var(--muted);font-size:0.95rem;">Tell us what's working, what's broken, or what you want next.</p>
+      <div class="section-tag anim">Feedback</div>
+      <h2 class="section-title anim anim-d1" style="max-width:100%;text-align:center;">What do you think?</h2>
+      <p class="anim anim-d2" style="color:var(--muted);font-size:0.95rem;">Tell us what's working, what's broken, or what you want next.</p>
     </div>
-
-    <div class="feedback-card">
-
-      <!-- Form state -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;" class="anim anim-d3">
       <div id="feedback-form-state">
-        <!-- Stars -->
-        <div class="stars" id="stars" aria-label="Rating">
-          <span class="star" data-val="1">★</span>
-          <span class="star" data-val="2">★</span>
-          <span class="star" data-val="3">★</span>
-          <span class="star" data-val="4">★</span>
-          <span class="star" data-val="5">★</span>
+        <div style="display:flex;gap:8px;margin-bottom:28px;" id="stars" aria-label="Rating">
+          <span class="fb-star" data-val="1" style="font-size:2rem;cursor:pointer;color:#333;transition:color 0.15s,transform 0.1s;user-select:none;line-height:1;">★</span>
+          <span class="fb-star" data-val="2" style="font-size:2rem;cursor:pointer;color:#333;transition:color 0.15s,transform 0.1s;user-select:none;line-height:1;">★</span>
+          <span class="fb-star" data-val="3" style="font-size:2rem;cursor:pointer;color:#333;transition:color 0.15s,transform 0.1s;user-select:none;line-height:1;">★</span>
+          <span class="fb-star" data-val="4" style="font-size:2rem;cursor:pointer;color:#333;transition:color 0.15s,transform 0.1s;user-select:none;line-height:1;">★</span>
+          <span class="fb-star" data-val="5" style="font-size:2rem;cursor:pointer;color:#333;transition:color 0.15s,transform 0.1s;user-select:none;line-height:1;">★</span>
         </div>
-
-        <input
-          type="text"
-          id="feedback-name"
-          class="feedback-field"
-          placeholder="Your name (optional)"
-          maxlength="80"
-        />
-
-        <textarea
-          id="feedback-message"
-          class="feedback-field"
-          rows="5"
-          placeholder="Share your thoughts, report a bug, or suggest a feature..."
-          maxlength="1000"
-        ></textarea>
-
-        <button class="feedback-submit" id="feedback-btn" onclick="submitFeedback()">Send Feedback</button>
-        <div class="feedback-status" id="feedback-status"></div>
+        <input type="text" id="feedback-name" placeholder="Your name (optional)" maxlength="80" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.9rem;padding:12px 16px;margin-bottom:14px;outline:none;transition:border-color 0.2s;" />
+        <textarea id="feedback-message" rows="5" placeholder="Share your thoughts, report a bug, or suggest a feature..." maxlength="1000" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.9rem;padding:12px 16px;margin-bottom:14px;outline:none;transition:border-color 0.2s;resize:none;"></textarea>
+        <button id="feedback-btn" onclick="submitFeedback()" style="width:100%;background:var(--orange);color:#000;font-weight:700;font-size:0.95rem;padding:13px;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.2s,transform 0.15s;">Send Feedback</button>
+        <div id="feedback-status" style="margin-top:14px;font-size:0.875rem;text-align:center;min-height:20px;"></div>
       </div>
-
-      <!-- Success state -->
-      <div class="feedback-success-state" id="feedback-success-state">
-        <div class="check">🎉</div>
-        <strong>Thanks for the feedback!</strong>
-        <p>We read every single response and use it to make ClownFish better.</p>
+      <div id="feedback-success-state" style="display:none;text-align:center;padding:20px 0;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🎉</div>
+        <strong style="color:var(--text);display:block;font-size:1.1rem;margin-bottom:6px;">Thanks for the feedback!</strong>
+        <p style="color:var(--muted);font-size:0.95rem;">We read every single response and use it to make ClownFish better.</p>
       </div>
-
     </div>
   </div>
 </section>
 
 <script>
-  // Star rating logic
   let selectedRating = 0;
-  const stars = document.querySelectorAll('.star');
-
-  stars.forEach(star => {
-    star.addEventListener('mouseover', () => highlightStars(+star.dataset.val));
-    star.addEventListener('mouseout',  () => highlightStars(selectedRating));
-    star.addEventListener('click',     () => { selectedRating = +star.dataset.val; highlightStars(selectedRating); });
+  const fbStars = document.querySelectorAll('.fb-star');
+  fbStars.forEach(star => {
+    star.addEventListener('mouseover', () => fbHighlight(+star.dataset.val));
+    star.addEventListener('mouseout',  () => fbHighlight(selectedRating));
+    star.addEventListener('click',     () => { selectedRating = +star.dataset.val; fbHighlight(selectedRating); });
   });
-
-  function highlightStars(val) {
-    stars.forEach(s => s.classList.toggle('active', +s.dataset.val <= val));
+  function fbHighlight(val) {
+    fbStars.forEach(s => { s.style.color = +s.dataset.val <= val ? 'var(--orange)' : '#333'; });
   }
-
   async function submitFeedback() {
-    const btn    = document.getElementById('feedback-btn');
+    const btn = document.getElementById('feedback-btn');
     const status = document.getElementById('feedback-status');
-    const name   = document.getElementById('feedback-name').value.trim();
-    const msg    = document.getElementById('feedback-message').value.trim();
-
-    if (!msg) {
-      status.textContent = 'Please write something before submitting.';
-      status.className = 'feedback-status error';
-      return;
-    }
-
-    btn.disabled   = true;
-    btn.textContent = 'Sending…';
-    status.textContent = '';
-    status.className = 'feedback-status';
-
-    const FIREBASE_API_KEY  = 'AIzaSyCuPkldUh1gez5qUacqMyGZzA-2MaX8TnI';
-    const FIREBASE_PROJECT  = 'clownfishai';
-    const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/feedback?key=${FIREBASE_API_KEY}`;
-
-    const body = {
-      fields: {
-        name:      { stringValue: name || 'Anonymous' },
-        message:   { stringValue: msg },
-        rating:    { integerValue: selectedRating || 0 },
-        source:    { stringValue: 'landing-page' },
-        timestamp: { timestampValue: new Date().toISOString() },
-      }
-    };
-
+    const name = document.getElementById('feedback-name').value.trim();
+    const msg = document.getElementById('feedback-message').value.trim();
+    if (!msg) { status.textContent = 'Please write something before submitting.'; status.style.color = '#f87171'; return; }
+    btn.disabled = true; btn.textContent = 'Sending…'; status.textContent = '';
+    const url = `https://firestore.googleapis.com/v1/projects/clownfishai/databases/(default)/documents/feedback?key=AIzaSyCuPkldUh1gez5qUacqMyGZzA-2MaX8TnI`;
     try {
-      const res = await fetch(url, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error('Request failed');
-
-      // Show success state
-      document.getElementById('feedback-form-state').style.display   = 'none';
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { name: { stringValue: name || 'Anonymous' }, message: { stringValue: msg }, rating: { integerValue: selectedRating || 0 }, source: { stringValue: 'github-pages' }, timestamp: { timestampValue: new Date().toISOString() } } }) });
+      if (!res.ok) throw new Error();
+      document.getElementById('feedback-form-state').style.display = 'none';
       document.getElementById('feedback-success-state').style.display = 'block';
-
-    } catch (e) {
-      status.textContent = 'Something went wrong. Please try again.';
-      status.className   = 'feedback-status error';
-      btn.disabled       = false;
-      btn.textContent    = 'Send Feedback';
+    } catch(e) {
+      status.textContent = 'Something went wrong. Please try again.'; status.style.color = '#f87171';
+      btn.disabled = false; btn.textContent = 'Send Feedback';
     }
   }
 </script>
@@ -790,15 +1245,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">
-    <svg viewBox="0 0 32 32" width="20" height="20">
-      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
-      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
-      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
-      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
-      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
-      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
-      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
-    </svg>
+    <svg viewBox="0 0 32 32" width="20" height="20"><path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/><ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/><path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/><path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/><ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/><circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/><circle cx="5.5" cy="15" r="1.1" fill="white"/></svg>
     Clown<span>Fish</span> AI
   </div>
   <div>© 2026 ClownFish AI. All rights reserved.</div>
@@ -807,6 +1254,19 @@
     <a href="privacy.html" style="color:var(--muted);text-decoration:none;">Privacy Policy</a>
   </div>
 </footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+      } else {
+        entry.target.classList.remove('in-view');
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.anim, .anim-scale').forEach(el => observer.observe(el));
+</script>
 
 </body>
 </html>
