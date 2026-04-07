@@ -26,14 +26,8 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="faq-btn" title="Help & FAQ">?</button>
-      <button class="icon-btn hidden" id="logout-btn" title="Sign out">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-      </button>
       <button class="icon-btn" id="darkmode-btn" title="Toggle dark mode"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="icon-btn" id="layout-btn" title="Switch to sidebar mode"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
       <button class="icon-btn" id="settings-btn" title="Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </header>
@@ -411,10 +405,10 @@
         <textarea id="rewriter-output" rows="5" readonly style="margin-top:6px"></textarea>
       </div>
 
-      <!-- Text References -->
+      <!-- Writing Style -->
       <div class="text-refs-section">
         <div class="text-refs-header">
-          <span class="text-refs-title">Text References</span>
+          <span class="text-refs-title">Writing Style</span>
           <label class="btn ghost sm text-refs-upload-lbl" title="Upload a PDF or TXT file of your own writing">
             + Add File
             <input type="file" id="text-refs-upload" accept=".pdf,.txt" multiple style="display:none">
@@ -430,13 +424,14 @@
 
       <!-- Mode switcher -->
       <div class="tool-mode-switcher">
-        <button class="tool-mode-btn active" data-mode="writer" data-panel="solver">AI Writer</button>
-        <button class="tool-mode-btn" data-mode="problems" data-panel="solver">Multi Problem Solver</button>
+        <button class="tool-mode-btn active" data-mode="problems" data-panel="solver">Problem Solver</button>
+        <button class="tool-mode-btn" data-mode="writer" data-panel="solver">AI Writer</button>
         <button class="tool-mode-btn" data-mode="lab" data-panel="solver">Lab Report</button>
+        <button class="tool-mode-btn" data-mode="quotes" data-panel="solver">Quotes</button>
       </div>
 
       <!-- AI WRITER section -->
-      <div class="tool-mode-section" id="solver-writer-section">
+      <div class="tool-mode-section hidden" id="solver-writer-section">
         <div class="row space">
           <span class="text-muted" style="font-size:11px">Paste assignment or describe what to write</span>
           <div class="row gap-2">
@@ -470,6 +465,21 @@
             <input type="checkbox" id="writer-inline-cite">
             <span>Inline citations</span>
           </label>
+        </div>
+
+        <!-- Shared text references (writing style) -->
+        <div class="text-refs-section text-refs-compact">
+          <div class="text-refs-header">
+            <span class="text-refs-title">Writing Style</span>
+            <button class="btn ghost sm text-refs-add-trigger">+ Add File</button>
+          </div>
+          <p class="hint text-refs-hint">Upload your own writing — AI matches your voice.</p>
+          <div class="shared-text-refs-list"></div>
+          <div class="regen-length-row" style="margin-top:8px">
+            <span class="regen-length-label">Influence:</span>
+            <input type="range" class="regen-length-slider" id="writer-style-intensity" min="0" max="3" step="1" value="0">
+            <span class="regen-length-label" id="writer-style-intensity-val" style="min-width:54px;text-align:right">Off</span>
+          </div>
         </div>
 
         <!-- STEP 1 — Direction Selection -->
@@ -507,14 +517,14 @@
         <div class="hidden" id="writer-sources-wrap">
           <div class="output-header" style="margin-top:8px">
             <span>Sources Used</span>
-            <button class="btn ghost sm" id="writer-cite-sources-btn">Cite Sources →</button>
+            <button class="btn ghost sm" id="writer-cite-sources-btn">Cite in MLA</button>
           </div>
           <div id="writer-sources-list"></div>
         </div>
       </div>
 
-      <!-- PROBLEM SOLVER section (Multi-Problem Solver) -->
-      <div class="tool-mode-section hidden" id="solver-problems-section">
+      <!-- PROBLEM SOLVER section -->
+      <div class="tool-mode-section" id="solver-problems-section">
 
         <!-- Empty state: no session loaded -->
         <div id="mc-empty-state">
@@ -530,7 +540,27 @@
           </div>
           <p class="hint" style="margin-bottom:10px">Load an assignment document and the AI will go through each question, giving you answer options to choose from — each one gets auto-typed.</p>
           <button class="btn primary full" id="mc-load-btn">Load Questions from Doc</button>
+          <label class="writer-option-check" style="margin-top:8px">
+            <input type="checkbox" id="mc-track-sources">
+            <span>Track sources used in answers</span>
+          </label>
           <p class="hint" style="margin-top:6px">Works best on Google Docs with multiple questions or tables to fill out.</p>
+          <p class="hint" style="margin-top:10px;padding:8px 10px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:8px;color:var(--accent)">&#128073; Sidebar mode is recommended for this tool — enable it with the panel icon in the top right corner.</p>
+
+          <!-- Shared text references (writing style) -->
+          <div class="text-refs-section text-refs-compact" style="margin-top:10px">
+            <div class="text-refs-header">
+              <span class="text-refs-title">Writing Style</span>
+              <button class="btn ghost sm text-refs-add-trigger">+ Add File</button>
+            </div>
+            <p class="hint text-refs-hint">Upload your own writing — AI matches your voice in answers.</p>
+            <div class="shared-text-refs-list"></div>
+            <div class="regen-length-row" style="margin-top:8px">
+              <span class="regen-length-label">Influence:</span>
+              <input type="range" class="regen-length-slider" id="solver-style-intensity" min="0" max="3" step="1" value="0">
+              <span class="regen-length-label" id="solver-style-intensity-val" style="min-width:54px;text-align:right">Off</span>
+            </div>
+          </div>
         </div>
 
         <!-- Active session -->
@@ -557,10 +587,24 @@
           <!-- Generated answer (editable) -->
           <div id="mc-answer-wrap" class="hidden">
             <textarea id="mc-answer-textarea" rows="4" placeholder="AI-generated answer will appear here — edit freely before typing…" style="margin-bottom:6px;resize:vertical"></textarea>
-            <div class="row gap-2">
-              <button class="btn ghost" id="mc-regen-btn" style="flex-shrink:0">↺ New Answer</button>
-              <button class="btn primary" id="mc-autotype-btn" style="flex:1">Auto-Type &amp; Next →</button>
+            <div class="regen-length-row">
+              <span class="regen-length-label">Short</span>
+              <input type="range" id="mc-regen-length" min="1" max="3" value="1" step="1" class="regen-length-slider">
+              <span class="regen-length-label">Long</span>
             </div>
+            <div class="mc-action-row">
+              <button class="btn ghost" id="mc-regen-btn">↺ Regen</button>
+              <button class="btn primary" id="mc-autotype-btn">Auto-Type &amp; Next →</button>
+            </div>
+          </div>
+
+          <!-- Session-wide tracked sources -->
+          <div class="hidden" id="mc-sources-wrap" style="margin-top:6px">
+            <div class="output-header">
+              <span>Sources Tracked</span>
+              <button class="btn ghost sm" id="mc-cite-all-btn">Cite in MLA</button>
+            </div>
+            <div id="mc-sources-list" style="margin-top:4px"></div>
           </div>
 
           <!-- Loading answer -->
@@ -610,6 +654,36 @@
             </div>
           </div>
           <textarea id="lab-output" rows="10" readonly style="margin-top:6px"></textarea>
+        </div>
+      </div>
+
+      <!-- SOURCE QUOTES section -->
+      <div class="tool-mode-section hidden" id="solver-quotes-section">
+        <span class="text-muted" style="font-size:11px;display:block;margin-bottom:6px">Paste a source URL — AI pulls key quotes &amp; analyzes each</span>
+        <input type="url" id="quotes-url-input" class="quotes-url-input" placeholder="https://example.com/article…">
+        <div class="row gap-2" style="margin:6px 0;align-items:center">
+          <span class="text-muted" style="font-size:11px;white-space:nowrap">Number of quotes</span>
+          <input type="number" id="quotes-count" value="3" min="1" max="10" class="quotes-count-input">
+        </div>
+        <button class="btn primary full" id="quotes-btn">Find Quotes &amp; Analyze</button>
+        <div class="hidden direction-loading" id="quotes-loading">
+          <span class="spinner"></span> Fetching &amp; analyzing source…
+        </div>
+        <div class="hidden" id="quotes-output-wrap">
+          <div class="output-header" style="margin-top:10px">
+            <span>Quotes &amp; Analysis</span>
+            <div class="row gap-2">
+              <button class="btn ghost sm" id="quotes-copy-btn">Copy</button>
+              <button class="btn ghost sm" id="quotes-autotype-btn"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="10" r="1" fill="currentColor" stroke="none"/><rect x="7.5" y="13" width="9" height="2" rx="1" fill="currentColor" stroke="none"/></svg> Auto Type</button>
+            </div>
+          </div>
+          <div id="quotes-output-list" style="margin-top:6px"></div>
+          <div class="regen-length-row" style="margin-top:10px">
+            <span class="regen-length-label">Short</span>
+            <input type="range" id="quotes-regen-length" min="1" max="3" value="2" step="1" class="regen-length-slider">
+            <span class="regen-length-label">Long</span>
+          </div>
+          <button class="btn ghost full" id="quotes-regen-btn" style="margin-top:4px">↺ Regenerate Analysis</button>
         </div>
       </div>
 
@@ -779,6 +853,8 @@
       <span class="footer-sep">·</span>
       <a class="footer-link" href="https://splintdeveloper.github.io/ClownFishAI/privacy.html" target="_blank" rel="noopener">Privacy</a>
       <span class="footer-sep">·</span>
+      <span class="footer-link" id="footer-feedback">Feedback</span>
+      <span class="footer-sep">·</span>
       <span class="footer-link" id="footer-settings">Settings <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-left:2px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
     </div>
   </footer>
@@ -834,6 +910,18 @@
         </div>
 
         <div class="faq-section">
+          <div class="faq-section-title">Header Buttons</div>
+          <div class="faq-q">? — Help &amp; FAQ</div>
+          <div class="faq-a">Opens this Help &amp; FAQ panel.</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg> Dark / Light Mode</div>
+          <div class="faq-a">Toggles between light and dark theme. Your preference is saved automatically.</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg> Sidebar / Popup Toggle</div>
+          <div class="faq-a">Switches the extension between a small popup window and a full-height Chrome sidebar panel. Sidebar mode is recommended for tools like Multi Problem Solver. Click the button again inside the sidebar to switch back to popup mode.</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Settings</div>
+          <div class="faq-a">Opens the settings page where you can enter your API key, choose your AI provider (Groq or OpenAI), and adjust other preferences.</div>
+        </div>
+
+        <div class="faq-section">
           <div class="faq-section-title">Important Disclaimer</div>
           <div class="faq-a faq-disclaimer">
             ClownFish AI is a personal productivity tool. <strong>Do not submit AI-generated content as your own work in academic, professional, or legal contexts.</strong> Doing so may violate your school's academic integrity policy or professional standards. Use responsibly.
@@ -855,11 +943,17 @@
           <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Problem Solver — AI Writer tab</div>
           <div class="faq-a">Writes content from a prompt or assignment. Paste the instructions, choose a length and tone, and it generates a human-sounding draft. Use Advanced Write for a 3-step outline process.</div>
 
-          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="2"/><circle cx="4.5" cy="18" r="2"/></svg> Problem Solver — Problem Solver tab</div>
-          <div class="faq-a">Goes through your assignment question by question, generating an AI answer for each one. Edit the answer if you like, then auto-type it and move to the next. Great for worksheets, tables, or any doc with lots of questions.</div>
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="2"/><circle cx="4.5" cy="18" r="2"/></svg> Problem Solver — Multi Problem Solver tab</div>
+          <div class="faq-a">Goes through your assignment question by question, generating an AI answer for each one. Load a Google Doc, edit the answer if you like, then auto-type it and move to the next. Great for worksheets, tables, or any doc with lots of questions. Sidebar mode is recommended for this tool.</div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></svg> Problem Solver — Lab Report tab</div>
+          <div class="faq-a">Generates a full lab report from your experiment details. Fill in your title, hypothesis, materials, procedure, and results, then click Generate. The AI structures everything into a proper lab report format.</div>
 
           <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> Citations</div>
           <div class="faq-a">Suggests citation sources for claims in your text. Paste your text, choose MLA / APA / Chicago style, and it identifies claims and suggests authoritative sources. <strong>Always verify sources before submitting.</strong></div>
+
+          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Learn</div>
+          <div class="faq-a">Four study modes in one tool: <strong>Flashcards</strong> — generates flip cards from any notes or text; <strong>Summarize</strong> — condenses content into Brief, Standard, or Detailed summaries; <strong>Explain</strong> — breaks down complex concepts in plain language; <strong>Quiz</strong> — creates practice questions with answers from your material. Use "From Doc" to load content directly from a Google Doc.</div>
 
           <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg> AI Checker — Fact Check tab</div>
           <div class="faq-a">Checks each factual claim in your text against known sources. Returns a verdict (true / false / uncertain / opinion) for each claim. Use Highlight to mark questionable claims directly on the page. Found inside the AI Checker tool.</div>
@@ -867,15 +961,39 @@
 
         <div class="faq-section">
           <div class="faq-section-title">Other Questions</div>
-          <div class="faq-q"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="3" y1="18" x2="14" y2="18"/></svg> Summarize</div>
-          <div class="faq-a">Summarizes text you paste or load from a page. Choose Brief (2–3 sentences), Standard (1 paragraph), or Detailed (key points list). Great for quickly understanding an assignment or condensing something you just wrote.</div>
-
           <div class="faq-q">Is my text sent anywhere?</div>
           <div class="faq-a">Text is sent directly to the AI provider (Groq or OpenAI) using your own API key. ClownFish AI does not store or see your text.</div>
           <div class="faq-q">Why does Auto Typer close the popup?</div>
           <div class="faq-a">It needs to close so you can click on the target field in the webpage. The typing happens in the background — just click where you want the text typed.</div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Feedback Modal ──────────────────────────────────────────────────── -->
+  <div class="modal-overlay hidden" id="feedback-modal">
+    <div class="modal-box feedback-modal-box">
+      <button class="modal-close" id="feedback-modal-close">✕</button>
+      <div class="modal-title">Send Feedback</div>
+      <p class="feedback-modal-sub">Tell us what's working, what's broken, or what you want next.</p>
+
+      <div id="feedback-modal-form">
+        <textarea
+          id="feedback-modal-msg"
+          class="modal-input feedback-modal-textarea"
+          placeholder="Your feedback..."
+          maxlength="1000"
+          rows="5"
+        ></textarea>
+        <button class="btn primary full" id="feedback-modal-btn">Send</button>
+        <div class="feedback-modal-status" id="feedback-modal-status"></div>
+      </div>
+
+      <div class="feedback-modal-success hidden" id="feedback-modal-success">
+        <div class="feedback-modal-check">🎉</div>
+        <strong>Thanks for the feedback!</strong>
+        <p>We read every response and use it to improve ClownFish.</p>
       </div>
     </div>
   </div>
