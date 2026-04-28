@@ -3,57 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment Successful — ClownFish</title>
+  <title>Payment Successful — ClownFish AI</title>
+  <link rel="icon" href="clownfishicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --orange: #f97316;
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.07);
+      --text: #f5f5f5;
+      --muted: #888;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #fff7ed;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px;
+      -webkit-font-smoothing: antialiased;
     }
     .card {
-      background: white;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 16px;
       padding: 40px 32px;
-      max-width: 420px;
+      max-width: 440px;
       width: 100%;
       text-align: center;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     }
-    .icon { font-size: 48px; margin-bottom: 16px; }
-    h1 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 8px; }
-    p  { font-size: 14px; color: #6b7280; line-height: 1.6; }
+    .logo {
+      width: 56px; height: 56px;
+      margin: 0 auto 16px;
+      display: block;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(34,197,94,0.12);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.32);
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    h1 span { color: var(--orange); }
+    .sub {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
     .steps {
-      background: #f8fafc;
-      border-radius: 10px;
-      padding: 16px 20px;
-      margin-top: 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
       text-align: left;
     }
-    .steps p { font-size: 13px; color: #374151; margin-bottom: 6px; font-weight: 600; }
-    .steps ol { padding-left: 18px; }
-    .steps li { font-size: 13px; color: #6b7280; margin-bottom: 4px; line-height: 1.5; }
-    .brand { margin-top: 24px; font-size: 11px; color: #f97316; font-weight: 700; letter-spacing: 0.05em; }
+    .steps-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .steps ol { padding-left: 20px; }
+    .steps li {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .steps li:last-child { margin-bottom: 0; }
+    .steps li strong { color: var(--text); }
+    .steps a { color: var(--orange); text-decoration: none; font-weight: 600; }
+    .steps a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon">🐟✅</div>
-    <h1>Payment Successful!</h1>
-    <p>You now have lifetime access to all ClownFish features.</p>
+    <img class="logo" src="clownfishicon.png" alt="ClownFish" />
+    <div class="badge">✓ Payment confirmed</div>
+    <h1>Welcome to <span>ClownFish AI</span></h1>
+    <p class="sub">You have lifetime access. One-time payment — no subscription, ever.</p>
     <div class="steps">
-      <p>Next steps:</p>
+      <div class="steps-title">Get started</div>
       <ol>
-        <li>Close this tab</li>
-        <li>Click the <strong>ClownFish</strong> icon in your browser toolbar</li>
-        <li>All premium features are now unlocked!</li>
+        <li>Close this tab and click the <strong>ClownFish icon</strong> in your browser toolbar.</li>
+        <li>Open Settings and paste an API key from your AI provider — a <strong>free Gemini key</strong> from <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a>, or your own key for OpenAI, Anthropic Claude, or xAI Grok.</li>
+        <li>Click the chat or any tool — you're ready to go.</li>
       </ol>
     </div>
-    <div class="brand">CLOWNFISH v2.0</div>
   </div>
 </body>
 </html>
