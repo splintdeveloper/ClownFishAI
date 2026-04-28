@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Privacy Policy — ClownFish AI</title>
+  <link rel="icon" href="clownfishicon.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
@@ -11,11 +12,13 @@
 
     :root {
       --orange: #f97316;
-      --bg: #0a0a0a;
-      --surface: #111111;
-      --border: rgba(255,255,255,0.07);
-      --text: #f5f5f5;
-      --muted: #888;
+      --bg: #ffffff;
+      --surface: #f5f6f8;
+      --surface2: #ecedf0;
+      --border: #e0e3e8;
+      --text: #0f1117;
+      --muted: #6b7280;
+      --muted2: #9ca3af;
       --radius: 14px;
     }
 
@@ -28,96 +31,71 @@
     }
 
     nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 5%;
-      height: 64px;
-      background: rgba(10,10,10,0.85);
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%; height: 64px;
+      background: rgba(255,255,255,0.85);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
-
     .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: -0.01em;
-      text-decoration: none;
-      color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 1.05rem;
+      text-decoration: none; color: var(--text);
     }
-
+    .nav-logo img { height: 24px; width: auto; }
     .nav-logo span { color: var(--orange); }
 
-    .container {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 72px 5% 100px;
-    }
+    .container { max-width: 760px; margin: 0 auto; padding: 72px 5% 100px; }
 
     h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
+      font-size: 2.2rem; font-weight: 800;
       letter-spacing: -0.02em;
       margin-bottom: 8px;
     }
-
-    .updated {
-      font-size: 0.875rem;
-      color: var(--muted);
-      margin-bottom: 48px;
-    }
+    .updated { font-size: 0.875rem; color: var(--muted); margin-bottom: 48px; }
 
     h2 {
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-size: 1.08rem; font-weight: 700;
       color: var(--orange);
-      margin-top: 40px;
-      margin-bottom: 12px;
+      margin-top: 40px; margin-bottom: 12px;
     }
 
-    p {
-      color: #ccc;
-      margin-bottom: 14px;
-      font-size: 0.95rem;
-    }
-
-    ul {
-      color: #ccc;
-      font-size: 0.95rem;
-      padding-left: 20px;
-      margin-bottom: 14px;
-    }
-
+    p { color: #374151; margin-bottom: 14px; font-size: 0.95rem; }
+    ul { color: #374151; font-size: 0.95rem; padding-left: 20px; margin-bottom: 14px; }
     ul li { margin-bottom: 6px; }
-
     a { color: var(--orange); text-decoration: none; }
     a:hover { text-decoration: underline; }
+    strong { color: var(--text); }
 
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 40px 0;
+    .callout {
+      background: rgba(249,115,22,0.06);
+      border: 1px solid rgba(249,115,22,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      font-size: 0.92rem;
+    }
+    .callout strong { color: var(--orange); }
+
+    code {
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
     }
 
     footer {
       border-top: 1px solid var(--border);
       padding: 28px 5%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 0.85rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+      color: var(--muted); font-size: 0.85rem;
     }
-
-    .footer-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em; color: var(--text); }
+    .footer-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); }
+    .footer-logo img { height: 22px; width: auto; }
     .footer-logo span { color: var(--orange); }
   </style>
 </head>
@@ -125,94 +103,142 @@
 
 <nav>
   <a href="index.html" class="nav-logo">
-    <svg viewBox="0 0 32 32" width="26" height="26">
-      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
-      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
-      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
-      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
-      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
-      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
-      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
-    </svg>
-    ClownFish <span>AI</span>
+    <img src="clownfishicon.png" alt="ClownFish AI" />
+    Clown<span>Fish</span> AI
   </a>
 </nav>
 
 <div class="container">
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: March 2025</p>
+  <p class="updated">Last updated: April 2026</p>
 
-  <p>ClownFish AI ("we", "our", or "the extension") is a Chrome browser extension that provides AI-powered writing tools. This Privacy Policy explains what information we collect, how we use it, and how we protect it.</p>
+  <p>ClownFish AI ("we", "our", or "the extension") is a Chrome browser extension that provides AI-powered writing and study tools for students. This Privacy Policy explains what information we collect, where it goes, and how we protect it.</p>
+
+  <div class="callout">
+    <strong>Bottom line:</strong> You bring your own API key from the AI provider of your choice — Google Gemini, OpenAI, Anthropic Claude, or xAI Grok. When you use an AI tool, your text goes directly from your browser to the provider you selected — not through our servers. We only handle account info, subscription status, and optional feedback. We never read, log, or store the text you submit to the AI.
+  </div>
 
   <h2>1. Information We Collect</h2>
-  <p>When you sign in with Google, we collect and store:</p>
+
+  <p><strong>When you create an account (email sign-in or Google sign-in):</strong></p>
   <ul>
     <li>Your email address</li>
-    <li>Your display name</li>
-    <li>A unique user ID (from Google/Firebase)</li>
-    <li>Authentication tokens (stored locally on your device)</li>
+    <li>Your display name (if provided)</li>
+    <li>A unique Firebase user ID</li>
+    <li>Authentication tokens (stored locally on your device; used to verify your subscription)</li>
   </ul>
-  <p>When you use the AI tools (Writer, Humanizer, Detector, Citations, Fact Checker), the text you submit is sent to third-party AI API providers to generate a response. We do not store this text on our servers.</p>
+  <p>If you sign in with Google, we request only the following OAuth scopes: <code>openid</code>, <code>email</code>, and <code>profile</code>. These let us verify your identity and display your name and email — nothing else. We never request access to Gmail, Google Drive, Google Calendar, or any other Google service.</p>
 
-  <h2>2. How We Use Your Information</h2>
+  <p><strong>When you purchase Lifetime Access:</strong></p>
   <ul>
-    <li>To authenticate your account and verify your subscription status</li>
-    <li>To process one-time payments via Stripe</li>
-    <li>To provide AI-powered features by sending your text to AI APIs</li>
-    <li>To store your preferences and settings locally on your device</li>
+    <li>A record that your account is subscribed (a boolean flag in Firestore)</li>
+    <li>A Stripe session ID to reconcile the payment</li>
+    <li>Your payment details (card number, etc.) are <strong>never seen by us</strong> — they are handled entirely by Stripe on their own checkout page</li>
   </ul>
 
-  <h2>3. Data Storage</h2>
-  <p>Your account information (email, user ID, subscription status) is stored in Google Firebase Firestore. Authentication tokens are stored locally in your browser using Chrome's built-in storage. We do not store the text you submit to AI tools.</p>
-
-  <h2>4. Third-Party Services</h2>
-  <p>ClownFish AI uses the following third-party services:</p>
+  <p><strong>When you submit optional feedback through the site or extension:</strong></p>
   <ul>
-    <li><strong>Google Firebase</strong> — authentication and account storage (<a href="https://firebase.google.com/support/privacy" target="_blank">Privacy Policy</a>)</li>
-    <li><strong>Groq / OpenAI</strong> — AI text processing (<a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI Privacy Policy</a>)</li>
-    <li><strong>Stripe</strong> — payment processing (<a href="https://stripe.com/privacy" target="_blank">Privacy Policy</a>)</li>
+    <li>The message you wrote</li>
+    <li>An optional display name</li>
+    <li>An optional rating (1–5)</li>
   </ul>
-  <p>Text you submit to AI tools is transmitted to these providers solely to fulfill your request. We do not sell this data or use it for advertising.</p>
 
-  <h2>5. Data We Do Not Collect</h2>
+  <h2>2. What Happens When You Use an AI Tool</h2>
+
+  <p>ClownFish is a <strong>Bring Your Own Key (BYOK)</strong> extension. In Settings, you choose which AI provider to use and paste in an API key you obtained directly from that provider. Supported providers are:</p>
   <ul>
-    <li>We do not collect your browsing history or web activity</li>
-    <li>We do not track keystrokes outside of the Auto Typer feature (which only types text you explicitly provide)</li>
-    <li>We do not collect location data</li>
-    <li>We do not collect financial or payment card information (handled entirely by Stripe)</li>
+    <li><strong>Google Gemini</strong> (default)</li>
+    <li><strong>OpenAI</strong> (GPT models)</li>
+    <li><strong>Anthropic Claude</strong></li>
+    <li><strong>xAI Grok</strong></li>
   </ul>
 
-  <h2>6. Data Sharing</h2>
-  <p>We do not sell, rent, or share your personal information with third parties except as necessary to provide the services described above (Firebase, AI providers, Stripe) or as required by law.</p>
+  <p>When you run <strong>Problem Solver, AI Writer, Humanizer, AI &amp; Fact Check, Citations, Pull Quotes, Flashcards, Summarize, Quiz</strong>, or <strong>AI Chat</strong>:</p>
+  <ul>
+    <li>The text (and any attached screenshots or files) you submit is sent from your browser <strong>directly</strong> to the API of the provider you selected, using the API key you provided in Settings.</li>
+    <li>We do <strong>not</strong> proxy this request through our servers. We do not see, log, store, or cache the text you submit or the AI's response.</li>
+    <li>The provider's handling of your prompt is governed by their own policies (see "Third-Party Services" below).</li>
+    <li>You can switch providers, change your API key, or remove your key at any time from the extension's Settings.</li>
+  </ul>
 
-  <h2>7. Data Retention</h2>
-  <p>Your account data is retained as long as your account exists. You may request deletion of your account and associated data at any time by contacting us at the email below.</p>
+  <p>The <strong>Auto Typer</strong> tool does not send any text to any AI service. It only types the text you already provided into a text field you click on your current webpage.</p>
 
-  <h2>8. Children's Privacy</h2>
-  <p>ClownFish AI is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
+  <h2>3. What's Stored Locally on Your Device</h2>
+  <p>ClownFish uses Chrome's built-in local storage for settings and your own work. This data never leaves your device:</p>
+  <ul>
+    <li>Your API key(s) for whichever AI provider(s) you've configured (stored only on your computer)</li>
+    <li>Your selected AI provider preference</li>
+    <li>Your typed drafts, auto-typer text, and recent tool inputs</li>
+    <li>Your extension preferences (dark mode, sidebar layout, slider defaults, etc.)</li>
+    <li>Writing Style samples, if you choose to upload them</li>
+  </ul>
+  <p>You can clear any of this at any time from the extension's Settings, or by removing the extension from Chrome.</p>
 
-  <h2>9. Changes to This Policy</h2>
+  <h2>4. What's Stored on Our Servers</h2>
+  <p>Only the minimum needed to gate access to the paid features:</p>
+  <ul>
+    <li>Your account record in Firebase Auth (email, user ID, display name)</li>
+    <li>A subscription record in Firestore (<code>users/{uid}</code> with a <code>subscribed: true/false</code> flag plus the Stripe session ID)</li>
+    <li>Feedback messages you voluntarily submit</li>
+  </ul>
+
+  <h2>5. Screenshots and Page Content</h2>
+  <p>Some tools (Problem Solver, Pull Quotes, "Import Text from Page") can pull content from the webpage you're currently looking at — but only when <strong>you explicitly click a button to do so</strong>. We never read tabs in the background. Screenshots captured by the Problem Solver are sent directly to your selected AI provider (Google Gemini, OpenAI, Anthropic Claude, or xAI Grok) using your API key, and are not stored by us.</p>
+
+  <h2>6. Third-Party Services</h2>
+  <p>ClownFish AI relies on these services. AI provider services are <strong>opt-in</strong> — you choose which one to use, and the request only goes to the provider you selected:</p>
+  <ul>
+    <li><strong>Google Gemini</strong> (opt-in AI provider) — your text is processed by Google under your own API key. See the <a href="https://ai.google.dev/gemini-api/terms" target="_blank">Gemini API Terms</a> and <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a>.</li>
+    <li><strong>OpenAI</strong> (opt-in AI provider) — your text is processed by OpenAI under your own API key. See the <a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI Privacy Policy</a> and <a href="https://openai.com/policies/api-data-usage-policies" target="_blank">API Data Usage Policy</a>.</li>
+    <li><strong>Anthropic Claude</strong> (opt-in AI provider) — your text is processed by Anthropic under your own API key. See the <a href="https://www.anthropic.com/legal/privacy" target="_blank">Anthropic Privacy Policy</a> and <a href="https://www.anthropic.com/legal/commercial-terms" target="_blank">Commercial Terms</a>.</li>
+    <li><strong>xAI Grok</strong> (opt-in AI provider) — your text is processed by xAI under your own API key. See the <a href="https://x.ai/legal/privacy-policy" target="_blank">xAI Privacy Policy</a>.</li>
+    <li><strong>Google Firebase</strong> — authentication and subscription storage. See the <a href="https://firebase.google.com/support/privacy" target="_blank">Firebase Privacy &amp; Security</a> page.</li>
+    <li><strong>Stripe</strong> — payment processing for the one-time unlock. Your card data goes only to Stripe. See the <a href="https://stripe.com/privacy" target="_blank">Stripe Privacy Policy</a>.</li>
+  </ul>
+
+  <h2>7. What We Do Not Do</h2>
+  <ul>
+    <li>We do not sell, rent, or share your personal information with advertisers or third parties.</li>
+    <li>We do not track your browsing history or web activity.</li>
+    <li>We do not log keystrokes outside of the Auto Typer feature (which only types text you explicitly provide into a field you explicitly click).</li>
+    <li>We do not collect location data.</li>
+    <li>We do not read content from tabs other than the one you're actively working with.</li>
+    <li>We do not train AI models on your text. (And because we never receive your prompts, no AI provider receives them through us either — only directly through your own API key, governed by that provider's policies.)</li>
+  </ul>
+
+  <h2>8. Data Retention</h2>
+  <p>Your account record and subscription flag are retained as long as your account exists. Feedback messages are retained so we can read and act on them. You can request deletion of your account and associated data at any time by emailing the address below — we will remove your Firebase and Firestore records within 30 days. Local data on your device can be cleared at any time from the extension's Settings panel or by uninstalling the extension.</p>
+
+  <h2>9. Children's Privacy</h2>
+  <p>ClownFish AI is not directed at children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us personal information, contact us at the email below and we will delete it.</p>
+
+  <h2>10. Permissions the Extension Requests</h2>
+  <p>ClownFish requests the following Chrome permissions, each tied to a specific feature:</p>
+  <ul>
+    <li><strong>activeTab</strong> — so Auto Typer can type into the field you click on the page you're already viewing.</li>
+    <li><strong>storage</strong> — to save your settings, API key, and drafts locally.</li>
+    <li><strong>contextMenus</strong> — to add the right-click "Explain with ClownFish" option.</li>
+    <li><strong>identity</strong> — to enable Google sign-in. Scopes are limited to <code>openid</code>, <code>email</code>, and <code>profile</code>.</li>
+    <li><strong>clipboardRead</strong> — used only as a fallback for pulling text from Google Docs.</li>
+    <li><strong>sidePanel</strong> — to let you run ClownFish in Chrome's side panel instead of a popup.</li>
+    <li><strong>host_permissions</strong> for <code>generativelanguage.googleapis.com</code>, <code>api.openai.com</code>, <code>api.anthropic.com</code>, and <code>api.x.ai</code> — so the extension can send your prompt directly to whichever AI provider you have selected.</li>
+    <li><strong>host_permissions on &lt;all_urls&gt;</strong> — so Auto Typer and "Import Text from Page" work on any site. We do <em>not</em> read any page unless you click a button that explicitly asks for it.</li>
+  </ul>
+
+  <h2>11. Changes to This Policy</h2>
   <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated date. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
 
-  <h2>10. Contact</h2>
-  <p>If you have any questions about this Privacy Policy, contact us at:<br />
-  <a href="mailto:splitsite@gmail.com">splitsite@gmail.com</a></p>
+  <h2>12. Contact</h2>
+  <p>If you have any questions, concerns, or deletion requests, email us at:<br/>
+  <a href="mailto:splintapp@gmail.com">splintapp@gmail.com</a></p>
 </div>
 
 <footer>
   <div class="footer-logo">
-    <svg viewBox="0 0 32 32" width="22" height="22">
-      <path d="M21 16 L30 8 L30 24 Z" fill="#f97316"/>
-      <ellipse cx="12" cy="16" rx="11" ry="8.5" fill="#f97316"/>
-      <path d="M8 8.5 Q13 2 19 8.5 Z" fill="#f97316"/>
-      <path d="M10 21 Q6 26 10 24 Z" fill="#f97316"/>
-      <ellipse cx="13.5" cy="16" rx="2.2" ry="8.5" fill="white" opacity="0.55"/>
-      <circle cx="5.5" cy="15" r="2.5" fill="#c2410c"/>
-      <circle cx="5.5" cy="15" r="1.1" fill="white"/>
-    </svg>
-    ClownFish <span>AI</span>
+    <img src="clownfishicon.png" alt="ClownFish" />
+    Clown<span>Fish</span> AI
   </div>
-  <div>© 2025 ClownFish AI. All rights reserved.</div>
+  <div>© 2026 ClownFish AI. All rights reserved.</div>
   <a href="index.html" style="color:var(--muted);text-decoration:none;">← Back to home</a>
 </footer>
 
